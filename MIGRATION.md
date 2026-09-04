@@ -1,7 +1,7 @@
 # Wealth Copilot — React Rebuild
 
 This is the start of a real Next.js/TypeScript rebuild of the Power Taxx Ltd. Wealth
-Copilot prototype, which today lives as one self-contained HTML file
+Copilot prototype, which today  lives as one self-contained HTML file
 (`power-taxx-app.html`) with all its logic in vanilla JavaScript template
 literals. That file is a great demo — it's zero-dependency and you can text a
 link to a client — but it can't grow a real backend, a real database, or a
