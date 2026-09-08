@@ -101,3 +101,44 @@ export function TaxEstimator() {
           ]}
         />
       </div>
+      <ResultBox
+        label={
+          r.isRefund
+            ? "Estimated refund (credits exceed tax owed)"
+            : "Estimated total tax owed (federal + SE + PA + local, after EITC)"
+        }
+        big={fmt(Math.abs(r.netTax))}
+        stats={[
+          { v: fmt(r.agi), k: "Adjusted Gross Income" },
+          { v: fmt(r.deduction), k: "Standard/Itemized Deduction" },
+          { v: fmt(r.qbiDeduction), k: "QBI Deduction (20%)" },
+          { v: fmt(r.taxableIncome), k: "Federal Taxable Income" },
+          { v: fmt(r.federalAfterCredits), k: "Federal Tax (after CTC)" },
+          { v: fmt(r.seTax), k: "Self-Employment Tax" },
+          { v: fmt(r.paTax), k: "PA State Tax" },
+          { v: fmt(r.localEIT + r.lst), k: "Local Tax + LST" },
+          { v: `-${fmt(r.eitc)}`, k: "EITC" },
+          { v: `${r.effectiveRate.toFixed(1)}%`, k: "Effective Tax Rate" },
+          { v: fmt(r.takeHome), k: "Estimated Take-Home" },
+        ]}
+      />
+
+      {state.status === "mfs" ? (
+        <div className="note mt-3">
+          <b>Heads up:</b> Married Filing Separately generally isn&apos;t eligible for the EITC, so it&apos;s shown
+          as $0 here — that alone is sometimes a reason a married couple chooses MFJ instead.
+        </div>
+      ) : r.eitc > 0 ? (
+        <div className="note mt-3">
+          <b>Good news:</b> based on what you entered, this household qualifies for an estimated {fmt(r.eitc)}{" "}
+          Earned Income Tax Credit{" "}
+          <Tip text="Earned Income Tax Credit — a credit for low-to-moderate earners that directly reduces tax owed (or adds to a refund), separate from any deduction." />{" "}
+          — that&apos;s real money that reduces tax owed or adds to a refund, not just a deduction. Always confirm
+          exact eligibility (qualifying child rules, residency, etc.) before filing.
+        </div>
+      ) : state.other > EITC_INVESTMENT_INCOME_LIMIT_2025 ? (
+        <div className="note mt-3">
+          <b>Heads up:</b> investment income above {fmt(EITC_INVESTMENT_INCOME_LIMIT_2025)} disqualifies a filer
+          from the EITC entirely for 2025, which is why it&apos;s showing $0 here.
+        </div>
+      ) : null}
