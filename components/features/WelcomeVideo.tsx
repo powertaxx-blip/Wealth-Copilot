@@ -87,3 +87,75 @@ export function WelcomeVideo({ onClose }: { onClose: () => void }) {
     if (speechSupported) window.speechSynthesis.cancel();
     onClose();
   }
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Welcome to Wealth Copilot"
+      onClick={handleClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(28, 16, 36, 0.72)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 100,
+        padding: "20px",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="card"
+        style={{ maxWidth: "480px", width: "100%", position: "relative", textAlign: "center" }}
+      >
+        <button
+          type="button"
+          onClick={handleClose}
+          aria-label="Close welcome video"
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 14,
+            background: "transparent",
+            border: "none",
+            fontSize: "20px",
+            color: "var(--muted)",
+            cursor: "pointer",
+            lineHeight: 1,
+          }}
+        >
+          ×
+        </button>
+
+        <span
+          className="w-fit rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide"
+          style={{ background: "var(--line-soft)", color: "var(--navy-2)", display: "inline-block" }}
+        >
+          Welcome to Wealth Copilot
+        </span>
+
+        <div className="mt-4 flex justify-center">
+          <AICharacterAvatar speaking={status === "playing"} />
+        </div>
+
+        <div
+          className="mt-4"
+          style={{ minHeight: "72px", display: "flex", alignItems: "center", justifyContent: "center" }}
+        >
+          <p style={{ fontSize: "16px", color: "var(--ink)", fontWeight: 500 }}>
+            {status === "idle" ? "Press play to meet your Wealth Copilot." : SCRIPT[lineIndex]}
+          </p>
+        </div>
+
+        {status === "finished" && (
+          <p className="text-sm mt-1" style={{ color: "var(--status-good)" }}>
+            That's the whole idea — you're ready to dive in.
+          </p>
+        )}
+
+        {!speechSupported && status !== "idle" && (
+          <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>
+            Your browser doesn&apos;t support spoken narration, so here it is in captions instead.
+          </p>
+        )}
