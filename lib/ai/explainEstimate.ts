@@ -79,3 +79,44 @@ export async function callAnthropicWithRetry(
       }
       break;
     }
+    if (res.ok) {
+      const data = await res.json();
+      const text = data?.content?.[0]?.text;
+      if (typeof text !== "string") {
+        throw new AIProviderError("Unexpected response shape from AI provider");
+      }
+      return text;
+    }
+
+    if (RETRYABLE_STATUS.has(res.status)) {
+      lastError = new AIProviderError(`AI provider returned ${res.status}`);
+      if (attempt < maxAttempts) {
+        await sleep(backoffDelay(attempt, baseDelayMs));
+        continue;
+      }
+      break;
+    }
+
+    throw new AIProviderError(`AI provider rejected the request (status ${res.status})`);
+  }
+
+  throw new AIProviderError(
+    `AI provider unavailable after ${maxAttempts} attempts: ${lastError instanceof Error ? lastError.message : String(lastError)}`
+  );
+}
+
+function backoffDelay(attempt: number, baseDelayMs: number): number {
+  const exp = baseDelayMs * 2 ** (attempt - 1);
+  const jitter = Math.random() * baseDelayMs;
+  return exp + jitter;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function explainEstimate(req: ExplainRequest, opts: Parameters<typeof callAnthropicWithRetry>[1] = {}): Promise<ExplainResponse> {
+  const userPrompt = buildUserPrompt(req);
+  const rawText = await callAnthropicWithRetry(userPrompt, opts);
+  return sanitizeExplainResponse(rawText);
+}
