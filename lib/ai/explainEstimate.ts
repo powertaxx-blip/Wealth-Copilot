@@ -36,3 +36,46 @@ Effective Tax Rate: ${r.effectiveRate.toFixed(1)}%
 Estimated Take-Home: ${fmt(r.takeHome)}
 ${r.quarterlyPayment > 0 ? `Quarterly Estimated Payment: ${fmt(r.quarterlyPayment)} due Apr 15 / Jun 15 / Sep 15 / Jan 15` : "No quarterly payments owed."}`;
 }
+const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 529]);
+
+export type FetchLike = typeof fetch;
+
+export async function callAnthropicWithRetry(
+  userPrompt: string,
+  opts: { fetchImpl?: FetchLike; maxAttempts?: number; baseDelayMs?: number; apiKey?: string } = {}
+): Promise<string> {
+  const fetchImpl = opts.fetchImpl ?? fetch;
+  const maxAttempts = opts.maxAttempts ?? 3;
+  const baseDelayMs = opts.baseDelayMs ?? 400;
+  const apiKey = opts.apiKey ?? process.env.ANTHROPIC_API_KEY;
+
+  if (!apiKey) {
+    throw new AIProviderError("AI insight is not configured (missing ANTHROPIC_API_KEY)");
+  }
+
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    let res: Response;
+    try {
+      res = await fetchImpl(API_URL, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: 400,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: "user", content: userPrompt }],
+        }),
+      });
+    } catch (networkErr) {
+      lastError = networkErr;
+      if (attempt < maxAttempts) {
+        await sleep(backoffDelay(attempt, baseDelayMs));
+        continue;
+      }
+      break;
+    }
