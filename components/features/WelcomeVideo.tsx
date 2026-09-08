@@ -159,3 +159,62 @@ export function WelcomeVideo({ onClose }: { onClose: () => void }) {
             Your browser doesn&apos;t support spoken narration, so here it is in captions instead.
           </p>
         )}
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          {status === "idle" && (
+            <button type="button" onClick={handlePlay} className="btn gold">
+              ▶ Play Welcome
+            </button>
+          )}
+          {status === "playing" && speechSupported && (
+            <button type="button" onClick={handlePause} className="btn ghost">
+              ⏸ Pause
+            </button>
+          )}
+          {status === "playing" && !speechSupported && (
+            <button type="button" onClick={handleNextLine} className="btn gold">
+              Next →
+            </button>
+          )}
+          {status === "paused" && (
+            <button type="button" onClick={handleResume} className="btn gold">
+              ▶ Resume
+            </button>
+          )}
+          {status === "finished" && (
+            <button type="button" onClick={handleReplay} className="btn ghost">
+              ↻ Replay
+            </button>
+          )}
+          <button type="button" onClick={handleClose} className="btn ghost">
+            {status === "finished" ? "Get Started" : "Skip"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function WelcomeVideoLauncher() {
+  const [seen, setSeen] = useLocalStorageState<boolean>("wc.welcomeVideoSeen", false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!seen) setOpen(true);
+  }, [seen]);
+
+  function close() {
+    setOpen(false);
+    setSeen(true);
+  }
+
+  return (
+    <>
+      {!open && (
+        <button type="button" onClick={() => setOpen(true)} className="btn ghost">
+          ▶ Watch the Welcome Video
+        </button>
+      )}
+      {open && <WelcomeVideo onClose={close} />}
+    </>
+  );
+}
