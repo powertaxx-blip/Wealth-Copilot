@@ -1,178 +1,133 @@
-import { fmt } from "@/lib/format";
-import { sanitizeExplainResponse, type ExplainRequest, type ExplainResponse } from "./schema";
-
 /**
- * =========================================================================
- * AI INTEGRATION — Tax Estimator "Explain My Numbers"
- * =========================================================================
- * This is the one place in the app that calls out to a third-party AI
- * model. Everything upstream of this file (sanitizeExplainRequest) has
- * already validated the input; everything downstream (sanitizeExplainResponse)
- * validates the output before it's trusted. This file is only responsible
- * for the prompt itself and for calling the model reliably.
+ * Tax Year 2025 (filed 2026) calculation core — federal, self-employment,
+ * PA state + Chester County local, EITC, and Child Tax Credit.
+ *
+ * Direct port of the pure functions inside the `<script>` block of the
+ * original prototype (`power-taxx-app.html`): FEDERAL_BRACKETS,
+ * STANDARD_DEDUCTION, SS_WAGE_BASE_2025, CTC_PHASEOUT_START, EITC_TABLE,
+ * calcFederalTax(), calcSETax(), calcEITC(). The numbers are copied
+ * unchanged — only the surrounding code changed shape, from functions
+ * that read/write the DOM to functions that take plain arguments and
+ * return plain objects, since React (not document.getElementById) now
+ * owns rendering.
+ *
+ * Source citations for the constants live as comments here exactly as
+ * they did in the prototype: IRS Rev. Proc. 2024-40 for brackets/EITC,
+ * OBBBA-adjusted standard deduction for 2025.
  */
 
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5";
-const API_URL = "https://api.anthropic.com/v1/messages";
+export type FilingStatus = "single" | "mfj" | "mfs" | "hoh";
 
-export class AIProviderError extends Error {}
+export const FEDERAL_BRACKETS: Record<FilingStatus, [number, number][]> = {
+  single: [[0, 0.1], [11925, 0.12], [48475, 0.22], [103350, 0.24], [197300, 0.32], [250525, 0.35], [626350, 0.37]],
+  mfj: [[0, 0.1], [23850, 0.12], [96950, 0.22], [206700, 0.24], [394600, 0.32], [501050, 0.35], [751600, 0.37]],
+  mfs: [[0, 0.1], [11925, 0.12], [48475, 0.22], [103350, 0.24], [197300, 0.32], [250525, 0.35], [375800, 0.37]],
+  hoh: [[0, 0.1], [17000, 0.12], [64850, 0.22], [103350, 0.24], [197300, 0.32], [250500, 0.35], [626350, 0.37]],
+};
 
-/**
- * Prompt engineering choices, spelled out:
- *  - The system prompt is a closed instruction, not an open-ended
- *    "you are a helpful tax assistant" — it explicitly forbids inventing
- *    numbers, forbids recommending a filing-status change (that's a real
- *    decision with real consequences; a one-paragraph AI note shouldn't
- *    make it), and forbids any output shape except the exact JSON schema.
- *  - The user prompt never contains free-form user text. Every value
- *    inserted into it has already passed sanitizeExplainRequest(), so
- *    there is no user-authored string anywhere in this prompt for a
- *    prompt-injection attempt to hide inside — the only "user input" is
- *    numbers and a filing-status enum picked from a fixed list.
- *  - The model is told its exact audience (a first-time filer, plain
- *    English, no jargon without a one-line definition) to match the rest
- *    of the app's voice instead of defaulting to generic tax-advisor tone.
- */
-const SYSTEM_PROMPT = `You explain a already-completed tax calculation to a small-business owner who is a first-time filer. You do not calculate tax yourself and you never invent a number that was not given to you.
+export const STANDARD_DEDUCTION: Record<FilingStatus, number> = {
+  single: 15750,
+  mfj: 31500,
+  mfs: 15750,
+  hoh: 23625,
+};
 
-Rules, in order of importance:
-1. Use ONLY the numbers provided in the user message. Never introduce a dollar figure, percentage, or deadline that was not given to you.
-2. Never recommend changing filing status, business structure, or withholding — those are decisions for the person and their preparer, not a one-paragraph note.
-3. Write for someone who has never filed self-employment taxes before: plain English, no unexplained jargon.
-4. Respond with ONLY a single JSON object shaped exactly like this, no markdown fences, no commentary before or after it:
-{"summary": "2-3 sentence plain-English summary of what these numbers mean", "tips": ["short actionable tip", "short actionable tip"]}
-5. "tips" must contain at most 4 items, each one short sentence, grounded strictly in the numbers given (e.g. pointing out a quarterly payment date that's coming up, or explaining why a credit applied) — not generic tax advice.
-6. If you cannot produce a safe, grounded response, return {"summary": "", "tips": []} exactly.`;
+export const SS_WAGE_BASE_2025 = 176100;
 
-function buildUserPrompt(req: ExplainRequest): string {
-  const { status, kids, result: r } = req;
-  const statusLabel = { single: "Single", mfj: "Married Filing Jointly", mfs: "Married Filing Separately", hoh: "Head of Household" }[status];
-  return `Filing status: ${statusLabel}
-Qualifying children: ${kids}
-Adjusted Gross Income: ${fmt(r.agi)}
-Standard/Itemized Deduction: ${fmt(r.deduction)}
-QBI Deduction: ${fmt(r.qbiDeduction)}
-Federal Taxable Income: ${fmt(r.taxableIncome)}
-Federal Tax After Child Tax Credit: ${fmt(r.federalAfterCredits)}
-Self-Employment Tax: ${fmt(r.seTax)}
-PA State Tax: ${fmt(r.paTax)}
-Local Tax + Local Services Tax: ${fmt(r.localEIT + r.lst)}
-Earned Income Tax Credit: ${fmt(r.eitc)}
-${r.isRefund ? "Estimated Refund" : "Estimated Total Tax Owed"}: ${fmt(Math.abs(r.netTax))}
-Effective Tax Rate: ${r.effectiveRate.toFixed(1)}%
-Estimated Take-Home: ${fmt(r.takeHome)}
-${r.quarterlyPayment > 0 ? `Quarterly Estimated Payment: ${fmt(r.quarterlyPayment)} due Apr 15 / Jun 15 / Sep 15 / Jan 15` : "No quarterly payments owed."}`;
-}
+export const CTC_PHASEOUT_START: Record<FilingStatus, number> = {
+  single: 200000,
+  mfs: 200000,
+  hoh: 200000,
+  mfj: 400000,
+};
 
-const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 529]);
+/** 2025 EITC parameters — Tax Policy Center / IRS Rev. Proc. 2024-40.
+ *  MFS filers are generally ineligible for EITC (except rare
+ *  separated-spouse exceptions), so MFS is excluded and handled as a
+ *  special case in calcEITC(). */
+const EITC_TABLE: Record
+  number,
+  { phaseInRate: number; maxCredit: number; phaseoutBegin: Partial<Record<FilingStatus, number>>; phaseoutRate: number }
+> = {
+  0: { phaseInRate: 0.0765, maxCredit: 649, phaseoutBegin: { single: 10620, hoh: 10620, mfj: 17730 }, phaseoutRate: 0.0765 },
+  1: { phaseInRate: 0.34, maxCredit: 4328, phaseoutBegin: { single: 23350, hoh: 23350, mfj: 30470 }, phaseoutRate: 0.1598 },
+  2: { phaseInRate: 0.4, maxCredit: 7152, phaseoutBegin: { single: 23350, hoh: 23350, mfj: 30470 }, phaseoutRate: 0.2106 },
+  3: { phaseInRate: 0.45, maxCredit: 8046, phaseoutBegin: { single: 23350, hoh: 23350, mfj: 30470 }, phaseoutRate: 0.2106 },
+};
 
-export type FetchLike = typeof fetch;
+export const EITC_INVESTMENT_INCOME_LIMIT_2025 = 11950;
 
-/**
- * Retry logic: exponential backoff with jitter, capped at maxAttempts.
- * Only retries on statuses that mean "try again later" (rate limit,
- * server-side/overload errors) or on a network-level failure (fetch
- * itself throwing). A 400/401/403 means something is wrong with the
- * request or credentials — retrying won't fix that, so those fail fast
- * instead of burning three attempts on a guaranteed-to-fail call.
- */
-export async function callAnthropicWithRetry(
-  userPrompt: string,
-  opts: { fetchImpl?: FetchLike; maxAttempts?: number; baseDelayMs?: number; apiKey?: string } = {}
-): Promise<string> {
-  const fetchImpl = opts.fetchImpl ?? fetch;
-  const maxAttempts = opts.maxAttempts ?? 3;
-  const baseDelayMs = opts.baseDelayMs ?? 400;
-  const apiKey = opts.apiKey ?? process.env.ANTHROPIC_API_KEY;
-
-  if (!apiKey) {
-    throw new AIProviderError("AI insight is not configured (missing ANTHROPIC_API_KEY)");
+function eitcFromIncome(income: number, params: (typeof EITC_TABLE)[number], status: FilingStatus): number {
+  const begin = params.phaseoutBegin[status] ?? params.phaseoutBegin.single!;
+  let credit = Math.min(income * params.phaseInRate, params.maxCredit);
+  if (income > begin) {
+    credit = params.maxCredit - (income - begin) * params.phaseoutRate;
   }
+  return Math.max(0, credit);
+}
 
-  let lastError: unknown;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    let res: Response;
-    try {
-      res = await fetchImpl(API_URL, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          max_tokens: 400,
-          system: SYSTEM_PROMPT,
-          messages: [{ role: "user", content: userPrompt }],
-        }),
-      });
-    } catch (networkErr) {
-      // fetch() itself threw — a real network failure (DNS, timeout,
-      // connection reset). Always retryable: nothing about the request
-      // was rejected, the request never arrived at all.
-      lastError = networkErr;
-      if (attempt < maxAttempts) {
-        await sleep(backoffDelay(attempt, baseDelayMs));
-        continue;
-      }
-      break;
-    }
+export function calcEITC(earnedIncome: number, agi: number, numKids: number, status: FilingStatus, investmentIncome: number): number {
+  if (status === "mfs") return 0;
+  if (investmentIncome > EITC_INVESTMENT_INCOME_LIMIT_2025) return 0;
+  const kids = Math.min(Math.max(0, Math.round(numKids)), 3);
+  const params = EITC_TABLE[kids];
+  const byEarned = eitcFromIncome(earnedIncome, params, status);
+  const byAGI = eitcFromIncome(agi, params, status);
+  return Math.round(Math.min(byEarned, byAGI));
+}
 
-    if (res.ok) {
-      const data = await res.json();
-      const text = data?.content?.[0]?.text;
-      if (typeof text !== "string") {
-        // The provider responded successfully but not in the shape this
-        // code expects. Not a transient failure — retrying the identical
-        // request would produce the identical shape — so fail immediately.
-        throw new AIProviderError("Unexpected response shape from AI provider");
-      }
-      return text;
-    }
-
-    if (RETRYABLE_STATUS.has(res.status)) {
-      lastError = new AIProviderError(`AI provider returned ${res.status}`);
-      if (attempt < maxAttempts) {
-        await sleep(backoffDelay(attempt, baseDelayMs));
-        continue;
-      }
-      break;
-    }
-
-    // Non-retryable status (400 bad request, 401/403 bad credentials,
-    // 404, etc.) — retrying an identical request would fail identically,
-    // so fail fast instead of burning the remaining attempts. Never
-    // surface the raw response body: it could contain provider-internal
-    // detail (or in a misconfigured deployment, an error message that
-    // echoes the request) that shouldn't reach a client.
-    throw new AIProviderError(`AI provider rejected the request (status ${res.status})`);
+export function calcFederalTax(taxableIncome: number, status: FilingStatus): number {
+  const brackets = FEDERAL_BRACKETS[status];
+  let tax = 0;
+  for (let i = 0; i < brackets.length; i++) {
+    const [floor, rate] = brackets[i];
+    const next = brackets[i + 1] ? brackets[i + 1][0] : Infinity;
+    if (taxableIncome > floor) {
+      tax += (Math.min(taxableIncome, next) - floor) * rate;
+    } else break;
   }
-
-  throw new AIProviderError(
-    `AI provider unavailable after ${maxAttempts} attempts: ${lastError instanceof Error ? lastError.message : String(lastError)}`
-  );
+  return tax;
 }
 
-function backoffDelay(attempt: number, baseDelayMs: number): number {
-  const exp = baseDelayMs * 2 ** (attempt - 1);
-  const jitter = Math.random() * baseDelayMs;
-  return exp + jitter;
+export function calcSETax(netProfit: number): { seTax: number; deduction: number; netEarnings: number } {
+  if (netProfit <= 0) return { seTax: 0, deduction: 0, netEarnings: 0 };
+  const netEarnings = netProfit * 0.9235;
+  const ssTax = Math.min(netEarnings, SS_WAGE_BASE_2025) * 0.124;
+  const medicareTax = netEarnings * 0.029;
+  const seTax = ssTax + medicareTax;
+  return { seTax, deduction: seTax / 2, netEarnings };
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+export type EstimatorInput = {
+  status: FilingStatus;
+  kids: number;
+  wages: number;
+  seProfit: number;
+  other: number;
+  itemized: number;
+  paRatePct: number; // e.g. 3.07 for 3.07%
+  localRatePct: number; // e.g. 1.25 for 1.25%
+  includeLST: boolean;
+};
 
-/**
- * Top-level entry point: sanitized request in, sanitized response out.
- * Everything between those two boundaries (prompt construction, the
- * network call, retries) is this file's job; everything on either side
- * of the boundary is schema.ts's job. Neither file trusts the other's
- * input without checking it.
- */
-export async function explainEstimate(req: ExplainRequest, opts: Parameters<typeof callAnthropicWithRetry>[1] = {}): Promise<ExplainResponse> {
-  const userPrompt = buildUserPrompt(req);
-  const rawText = await callAnthropicWithRetry(userPrompt, opts);
-  return sanitizeExplainResponse(rawText);
-}
+export type EstimatorResult = {
+  agi: number;
+  deduction: number;
+  qbiDeduction: number;
+  taxableIncome: number;
+  federalTax: number;
+  ctc: number;
+  federalAfterCredits: number;
+  seTax: number;
+  paTax: number;
+  localEIT: number;
+  lst: number;
+  eitc: number;
+  netTax: number;
+  isRefund: boolean;
+  totalIncome: number;
+  effectiveRate: number;
+  takeHome: number;
+  quarterlyPayment: number; // 0 if not owed / refund
+};
+
