@@ -45,7 +45,7 @@ export const CTC_PHASEOUT_START: Record<FilingStatus, number> = {
  *  MFS filers are generally ineligible for EITC (except rare
  *  separated-spouse exceptions), so MFS is excluded and handled as a
  *  special case in calcEITC(). */
-const EITC_TABLE: Record
+const EITC_TABLE: Record<
   number,
   { phaseInRate: number; maxCredit: number; phaseoutBegin: Partial<Record<FilingStatus, number>>; phaseoutRate: number }
 > = {
@@ -130,4 +130,71 @@ export type EstimatorResult = {
   takeHome: number;
   quarterlyPayment: number; // 0 if not owed / refund
 };
+/**
+ * Direct port of the vanilla-JS `runEstimator()` body, minus all DOM
+ * reads/writes — it takes the seven form values as one object and
+ * returns every derived number as one object, so the component below
+ * can decide how to render them instead of this function building
+ * HTML strings itself.
+ */
+export function estimateTax(input: EstimatorInput): EstimatorResult {
+  const { status, kids, wages, seProfit, other, itemized, includeLST } = input;
+  const paRate = input.paRatePct / 100;
+  const localRate = input.localRatePct / 100;
+
+  const se = calcSETax(seProfit);
+  const qbiBase = Math.max(0, seProfit - se.deduction);
+  const qbiDeduction = qbiBase * 0.2;
+
+  const agi = Math.max(0, wages + seProfit + other - se.deduction);
+  const deduction = Math.max(STANDARD_DEDUCTION[status], itemized);
+  const taxableIncome = Math.max(0, agi - deduction - qbiDeduction);
+
+  const federalTax = calcFederalTax(taxableIncome, status);
+
+  const ctcKids = Math.max(0, Math.round(kids));
+  let ctc = ctcKids * 2200;
+  const phaseoutStart = CTC_PHASEOUT_START[status];
+  if (agi > phaseoutStart) {
+    const reduction = Math.ceil((agi - phaseoutStart) / 1000) * 50;
+    ctc = Math.max(0, ctc - reduction);
+  }
+  const federalAfterCredits = Math.max(0, federalTax - ctc);
+
+  const earnedLocal = wages + seProfit;
+  const paTax = earnedLocal * paRate;
+  const localEIT = earnedLocal * localRate;
+  const lst = includeLST && earnedLocal > 12000 ? 52 : 0;
+
+  const earnedIncomeForEITC = wages + seProfit;
+  const eitc = calcEITC(earnedIncomeForEITC, agi, kids, status, other);
+
+  const totalTaxBeforeEITC = federalAfterCredits + se.seTax + paTax + localEIT + lst;
+  const netTax = totalTaxBeforeEITC - eitc;
+  const totalIncome = wages + seProfit + other;
+  const effectiveRate = totalIncome > 0 ? (netTax / totalIncome) * 100 : 0;
+  const takeHome = totalIncome - netTax;
+  const isRefund = netTax < 0;
+
+  return {
+    agi,
+    deduction,
+    qbiDeduction,
+    taxableIncome,
+    federalTax,
+    ctc,
+    federalAfterCredits,
+    seTax: se.seTax,
+    paTax,
+    localEIT,
+    lst,
+    eitc,
+    netTax,
+    isRefund,
+    totalIncome,
+    effectiveRate,
+    takeHome,
+    quarterlyPayment: !isRefund && netTax > 0 ? netTax / 4 : 0,
+  };
+}
 
