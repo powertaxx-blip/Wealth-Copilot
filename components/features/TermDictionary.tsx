@@ -77,3 +77,84 @@ const TERMS: Term[] = [
       "Missing these carries its own IRS penalty, separate from whatever tax you owe. It stops being optional the moment you cross that threshold.",
   },
 ];
+export function TermDictionary() {
+  const [query, setQuery] = useState("");
+  const [openTerm, setOpenTerm] = useState<string | null>(null);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return TERMS;
+    return TERMS.filter((t) => t.term.toLowerCase().includes(q) || t.definition.toLowerCase().includes(q));
+  }, [query]);
+
+  return (
+    <div className="card mt-4" style={{ boxShadow: "none", border: "1px solid var(--line)" }}>
+      <h3 className="mt-0 text-lg">Term Dictionary</h3>
+      <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
+        Every technical term on this page, in plain English — and why each one is actually worth understanding, not
+        just memorizing.
+      </p>
+
+      <input
+        type="text"
+        placeholder="Search a term (e.g. &quot;EITC&quot;, &quot;deduction&quot;)…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className="mt-2 w-full"
+        style={{
+          padding: "10px 12px",
+          border: "1px solid var(--line)",
+          borderRadius: "8px",
+          background: "var(--bg)",
+          color: "var(--ink)",
+          fontSize: "14px",
+        }}
+      />
+
+      <div className="mt-3 flex flex-col gap-2">
+        {filtered.length === 0 && (
+          <p className="text-sm" style={{ color: "var(--muted)" }}>
+            No terms match &quot;{query}&quot;.
+          </p>
+        )}
+        {filtered.map((t) => {
+          const isOpen = openTerm === t.term;
+          return (
+            <div key={t.term} style={{ border: "1px solid var(--line)", borderRadius: "8px", overflow: "hidden" }}>
+              <button
+                type="button"
+                onClick={() => setOpenTerm(isOpen ? null : t.term)}
+                className="w-full text-left"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "10px 14px",
+                  background: isOpen ? "var(--line-soft)" : "transparent",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  color: "var(--navy)",
+                  cursor: "pointer",
+                }}
+                aria-expanded={isOpen}
+              >
+                {t.term}
+                <span style={{ color: "var(--gold)", fontSize: "16px", flexShrink: 0 }}>{isOpen ? "−" : "+"}</span>
+              </button>
+              {isOpen && (
+                <div className="text-sm" style={{ padding: "0 14px 14px", color: "var(--ink-soft)" }}>
+                  <p style={{ margin: "0 0 8px" }}>{t.definition}</p>
+                  <p style={{ margin: 0 }}>
+                    <b style={{ color: "var(--navy-2)" }}>Why it matters:</b> {t.whyItMatters}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
