@@ -2,251 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
-/* =========================================================
-   DESIGN TOKENS
-   Ported from the original single-file HTML prototype so the
-   React rebuild looks identical on day one. Same three-state
-   theming pattern: bare :root (light default), a prefers-color-
-   scheme block guarded so an explicit light choice always wins,
-   and a [data-theme="dark"] block so a manual toggle wins too.
-   ========================================================= */
 :root {
   color-scheme: light;
-  --bg: #f7f8fa;
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --bg: #faf6f2;
   --paper: #ffffff;
-  --ink: #131f2c;
-  --ink-soft: #4c5b6e;
-  --muted: #7c8a9c;
-  --navy: #0f2438;
-  --navy-2: #16324f;
-  --gold: #b4842a;
-  --line: rgba(15, 36, 56, 0.15);
-  --line-soft: rgba(15, 36, 56, 0.08);
-  --status-good: #136b3a;
-  --status-good-bg: #e6f7ec;
-  --status-warning: #a3690a;
-  --status-warning-bg: #fbeed9;
-  --status-critical: #b3261e;
-  --status-critical-bg: #fbe4e2;
+  --ink: #1c1024;
+  --ink-soft: #5b4b63;
+  --muted: #8b7a93;
+  --navy: #2e0f3d;
+  --navy-2: #7c3aed;
+  --gold: #f2a900;
+
+  --brand-surface: #2e0f3d;
+  --brand-accent: #7c3aed;
+  --on-brand: #f5ecff;
+  --on-gold: #2e0f3d;
+
+  --line: rgba(46, 15, 61, 0.15);
+  --line-soft: rgba(46, 15, 61, 0.07);
+  --status-good: #12805c;
+  --status-good-bg: #e4f7ef;
+  --status-warning: #c2660c;
+  --status-warning-bg: #fceedc;
+  --status-critical: #d6293e;
+  --status-critical-bg: #fbe3e6;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0a1520;
-    --paper: #101c2c;
-    --ink: #eef3f8;
-    --ink-soft: #aebccd;
-    --muted: #7f93aa;
-    --navy: #dce8f5;
-    --navy-2: #bcd3ea;
-    --gold: #e2b568;
-    --line: rgba(220, 232, 245, 0.18);
-    --line-soft: rgba(220, 232, 245, 0.1);
-    --status-good: #4fbf82;
-    --status-good-bg: #12301f;
-    --status-warning: #e0a934;
-    --status-warning-bg: #3a2a12;
-    --status-critical: #e66767;
-    --status-critical-bg: #3a1a18;
+    --bg: #150a1c;
+    --paper: #211230;
+    --ink: #f7eefb;
+    --ink-soft: #d3bedd;
+    --muted: #a48fb0;
+    --navy: #f0dfff;
+    --navy-2: #c9a3ff;
+    --gold: #ffcb47;
+    --line: rgba(240, 223, 255, 0.16);
+    --line-soft: rgba(240, 223, 255, 0.08);
+    --status-good: #4ade94;
+    --status-good-bg: #123626;
+    --status-warning: #f0a73c;
+    --status-warning-bg: #3d2a10;
+    --status-critical: #f1667a;
+    --status-critical-bg: #3a1420;
   }
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #0a1520;
-  --paper: #101c2c;
-  --ink: #eef3f8;
-  --ink-soft: #aebccd;
-  --muted: #7f93aa;
-  --navy: #dce8f5;
-  --navy-2: #bcd3ea;
-  --gold: #e2b568;
-  --line: rgba(220, 232, 245, 0.18);
-  --line-soft: rgba(220, 232, 245, 0.1);
-  --status-good: #4fbf82;
-  --status-good-bg: #12301f;
-  --status-warning: #e0a934;
-  --status-warning-bg: #3a2a12;
-  --status-critical: #e66767;
-  --status-critical-bg: #3a1a18;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  padding: 0;
-  margin: 0;
-}
-
-body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  font-size: 16px;
-  line-height: 1.55;
-}
-
-h1,
-h2,
-h3 {
-  font-family: "Source Serif 4", Georgia, serif;
-  color: var(--navy);
-  margin: 0;
-}
-
-/* =========================================================
-   SHARED COMPONENT CLASSES
-   Same names/shapes as the HTML prototype (.card, .result-box,
-   .stat-strip, .status-pill …) so porting a panel is close to a
-   1:1 markup translation, not a redesign.
-   ========================================================= */
-.card {
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 24px;
-}
-
-.field label {
-  display: block;
-  font-size: 13px;
-  color: var(--ink-soft);
-  margin-bottom: 6px;
-}
-
-.field input,
-.field select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--ink);
-  font-size: 15px;
-}
-
-.field input:focus,
-.field select:focus {
-  outline: 2px solid var(--gold);
-  outline-offset: 1px;
-}
-
-.result-box {
-  background: var(--navy);
-  color: var(--paper);
-  border-radius: 10px;
-  padding: 18px 20px;
-}
-
-.result-box .label {
-  font-size: 12.5px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  opacity: 0.75;
-}
-
-.result-box .big {
-  font-family: "Source Serif 4", serif;
-  font-size: 30px;
-  margin-top: 4px;
-}
-
-.stat-strip {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
-  margin-top: 14px;
-}
-
-.stat {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-
-.stat .v {
-  font-family: "Source Serif 4", serif;
-  font-size: 18px;
-}
-
-.stat .k {
-  font-size: 11px;
-  opacity: 0.75;
-  margin-top: 2px;
-}
-
-.status-pill {
-  display: inline-block;
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 999px;
-}
-
-.status-pill.good {
-  background: var(--status-good-bg);
-  color: var(--status-good);
-}
-
-.status-pill.warning {
-  background: var(--status-warning-bg);
-  color: var(--status-warning);
-}
-
-.status-pill.critical {
-  background: var(--status-critical-bg);
-  color: var(--status-critical);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14.5px;
-  margin-top: 12px;
-}
-
-th {
-  text-align: left;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--line);
-}
-
-td {
-  padding: 9px 10px;
-  border-bottom: 1px solid var(--line-soft);
-  color: var(--ink-soft);
-}
-
-.num {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.btn {
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 10px 16px;
-  border: 1px solid transparent;
-  cursor: pointer;
-}
-
-.btn.gold {
-  background: var(--gold);
-  color: var(--navy);
-}
-
-.btn.ghost {
-  background: transparent;
-  border-color: var(--line);
-  color: var(--ink-soft);
 }
