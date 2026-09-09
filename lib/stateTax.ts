@@ -155,4 +155,131 @@ export const STATE_TAX_RULES: Record<USState, StateRule> = {
       { rate: 0.123, upTo: null },
     ],
   },
-  CO: { kind: "flat", rate: 0.044 },
+  CO: { kind: "flat", rate: 0.044 },   CT: {
+    kind: "brackets",
+    single: [
+      { rate: 0.02, upTo: 10000 },
+      { rate: 0.045, upTo: 50000 },
+      { rate: 0.055, upTo: 100000 },
+      { rate: 0.06, upTo: 200000 },
+      { rate: 0.065, upTo: 250000 },
+      { rate: 0.069, upTo: 500000 },
+      { rate: 0.0699, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.02, upTo: 20000 },
+      { rate: 0.045, upTo: 100000 },
+      { rate: 0.055, upTo: 200000 },
+      { rate: 0.06, upTo: 400000 },
+      { rate: 0.065, upTo: 500000 },
+      { rate: 0.069, upTo: 1000000 },
+      { rate: 0.0699, upTo: null },
+    ],
+  },
+  DE: {
+    kind: "brackets",
+    single: [
+      { rate: 0.022, upTo: 5000 },
+      { rate: 0.039, upTo: 10000 },
+      { rate: 0.048, upTo: 20000 },
+      { rate: 0.052, upTo: 25000 },
+      { rate: 0.0555, upTo: 60000 },
+      { rate: 0.066, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.022, upTo: 5000 },
+      { rate: 0.039, upTo: 10000 },
+      { rate: 0.048, upTo: 20000 },
+      { rate: 0.052, upTo: 25000 },
+      { rate: 0.0555, upTo: 60000 },
+      { rate: 0.066, upTo: null },
+    ],
+  },
+  FL: { kind: "none" },
+  // Georgia — an aggregator figure of 5.39% (last year's rate) was caught
+  // and corrected during research: HB 111 (signed April 2025) cut the
+  // rate to 5.19% retroactive to Jan 1, 2025. A further cut to 4.99%
+  // (HB 463) doesn't take effect until tax year 2026, so it is NOT used
+  // here.
+  GA: { kind: "flat", rate: 0.0519 },
+  HI: {
+    kind: "brackets",
+    single: [
+      { rate: 0.014, upTo: 9600 },
+      { rate: 0.032, upTo: 14400 },
+      { rate: 0.055, upTo: 19200 },
+      { rate: 0.064, upTo: 24000 },
+      { rate: 0.068, upTo: 36000 },
+      { rate: 0.072, upTo: 48000 },
+      { rate: 0.076, upTo: 125000 },
+      { rate: 0.079, upTo: 175000 },
+      { rate: 0.0825, upTo: 225000 },
+      { rate: 0.09, upTo: 275000 },
+      { rate: 0.10, upTo: 325000 },
+      { rate: 0.11, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.014, upTo: 19200 },
+      { rate: 0.032, upTo: 28800 },
+      { rate: 0.055, upTo: 38400 },
+      { rate: 0.064, upTo: 48000 },
+      { rate: 0.068, upTo: 72000 },
+      { rate: 0.072, upTo: 96000 },
+      { rate: 0.076, upTo: 250000 },
+      { rate: 0.079, upTo: 350000 },
+      { rate: 0.0825, upTo: 450000 },
+      { rate: 0.09, upTo: 550000 },
+      { rate: 0.10, upTo: 650000 },
+      { rate: 0.11, upTo: null },
+    ],
+  },
+  ID: { kind: "flat", rate: 0.05695 },
+  IL: { kind: "flat", rate: 0.0495 },
+  IN: { kind: "flat", rate: 0.03 },
+  // Iowa moved from a graduated schedule to a single flat rate starting
+  // tax year 2025 — confirmed against the Iowa Dept. of Revenue.
+  IA: { kind: "flat", rate: 0.038 },
+  KS: {
+    kind: "brackets",
+    single: [{ rate: 0.052, upTo: 23000 }, { rate: 0.0558, upTo: null }],
+    mfj: [{ rate: 0.052, upTo: 46000 }, { rate: 0.0558, upTo: null }],
+  },
+  KY: { kind: "flat", rate: 0.04 },
+  // Louisiana moved from a graduated schedule (formerly topping at 4.25%)
+  // to a single flat rate for 2025, alongside a much larger standard
+  // deduction — the deduction increase isn't modeled here (this estimator
+  // uses federal AGI, not Louisiana's own base), so treat LA's number as
+  // a slight overestimate.
+  LA: { kind: "flat", rate: 0.03 },
+  ME: {
+    kind: "brackets",
+    single: [{ rate: 0.058, upTo: 26800 }, { rate: 0.0675, upTo: 63450 }, { rate: 0.0715, upTo: null }],
+    mfj: [{ rate: 0.058, upTo: 53600 }, { rate: 0.0675, upTo: 126900 }, { rate: 0.0715, upTo: null }],
+  },
+  MD: {
+    kind: "brackets",
+    single: [
+      { rate: 0.02, upTo: 1000 },
+      { rate: 0.03, upTo: 2000 },
+      { rate: 0.04, upTo: 3000 },
+      { rate: 0.0475, upTo: 100000 },
+      { rate: 0.05, upTo: 125000 },
+      { rate: 0.0525, upTo: 150000 },
+      { rate: 0.055, upTo: 250000 },
+      { rate: 0.0575, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.02, upTo: 1000 },
+      { rate: 0.03, upTo: 2000 },
+      { rate: 0.04, upTo: 3000 },
+      { rate: 0.0475, upTo: 150000 },
+      { rate: 0.05, upTo: 175000 },
+      { rate: 0.0525, upTo: 225000 },
+      { rate: 0.055, upTo: 300000 },
+      { rate: 0.0575, upTo: null },
+    ],
+  },
+  // Massachusetts — flat 5% base rate, verified directly against Mass.gov;
+  // the well-known "Millionaire's Tax" 4% surtax above $1,083,150 (TY2025,
+  // inflation-indexed) is modeled below in STATE_SURTAX.
+  MA: { kind: "flat", rate: 0.05 },
