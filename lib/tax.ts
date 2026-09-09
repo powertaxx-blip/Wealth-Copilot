@@ -106,4 +106,113 @@ export function calcSETax(netProfit: number): { seTax: number; deduction: number
   const medicareTax = netEarnings * 0.029;
   const seTax = ssTax + medicareTax;
   return { seTax, deduction: seTax / 2, netEarnings };
+} 
+export type EstimatorInput = {
+  status: FilingStatus;
+  kids: number;
+  wages: number;
+  seProfit: number;
+  other: number;
+  itemized: number;
+  state: USState; // e.g. "PA" — looked up in lib/stateTax.ts
+  localRatePct: number; // e.g. 1.25 for 1.25% — manually entered, city/county EIT-style rate
+  localFlatFee: number; // e.g. 52 for Pennsylvania's Local Services Tax — manually entered flat annual fee, $0 if none
+};
+
+export type EstimatorResult = {
+  agi: number;
+  deduction: number;
+  qbiDeduction: number;
+  taxableIncome: number;
+  federalTax: number;
+  ctc: number;
+  federalAfterCredits: number;
+  seTax: number;
+  stateTax: number;
+  localEIT: number;
+  localFlatFee: number;
+  eitc: number;
+  netTax: number;
+  isRefund: boolean;
+  totalIncome: number;
+  effectiveRate: number;
+  takeHome: number;
+  quarterlyPayment: number; // 0 if not owed / refund
+};
+
+/**
+ * Direct port of the vanilla-JS `runEstimator()` body, minus all DOM
+ * reads/writes — it takes the seven form values as one object and
+ * returns every derived number as one object, so the component below
+ * can decide how to render them instead of this function building
+ * HTML strings itself.
+ */
+export function estimateTax(input: EstimatorInput): EstimatorResult {
+  const { status, kids, wages, seProfit, other, itemized, state, localFlatFee } = input;
+  const localRate = input.localRatePct / 100;
+
+  const se = calcSETax(seProfit);
+  const qbiBase = Math.max(0, seProfit - se.deduction);
+  const qbiDeduction = qbiBase * 0.2;
+
+  const agi = Math.max(0, wages + seProfit + other - se.deduction);
+  const deduction = Math.max(STANDARD_DEDUCTION[status], itemized);
+  const taxableIncome = Math.max(0, agi - deduction - qbiDeduction);
+
+  const federalTax = calcFederalTax(taxableIncome, status);
+
+  // QA audit finding: unlike calcEITC (which already clamps kids to 0-3
+  // below), this line used the raw `kids` input directly. A negative value
+  // (reachable before this fix by typing "-2" into the UI, or always
+  // reachable by anyone calling estimateTax()/the API directly) produced a
+  // negative ctc, which made federalAfterCredits = federalTax - ctc go UP
+  // instead of the credit being ignored — the exact opposite of correct
+  // behavior. Clamped the same way calcEITC already does.
+  const ctcKids = Math.max(0, Math.round(kids));
+  let ctc = ctcKids * 2200;
+  const phaseoutStart = CTC_PHASEOUT_START[status];
+  if (agi > phaseoutStart) {
+    const reduction = Math.ceil((agi - phaseoutStart) / 1000) * 50;
+    ctc = Math.max(0, ctc - reduction);
+  }
+  const federalAfterCredits = Math.max(0, federalTax - ctc);
+
+  const earnedLocal = wages + seProfit;
+  // State tax is applied to AGI, not to earned-income-only or to federal
+  // taxable income after the federal standard deduction — see the
+  // simplification note at the top of lib/stateTax.ts for why.
+  const stateTax = calcStateTax(state, agi, status);
+  const localEIT = earnedLocal * localRate;
+  const lst = Math.max(0, localFlatFee);
+
+  const earnedIncomeForEITC = wages + seProfit;
+  const eitc = calcEITC(earnedIncomeForEITC, agi, kids, status, other);
+
+  const totalTaxBeforeEITC = federalAfterCredits + se.seTax + stateTax + localEIT + lst;
+  const netTax = totalTaxBeforeEITC - eitc;
+  const totalIncome = wages + seProfit + other;
+  const effectiveRate = totalIncome > 0 ? (netTax / totalIncome) * 100 : 0;
+  const takeHome = totalIncome - netTax;
+  const isRefund = netTax < 0;
+
+  return {
+    agi,
+    deduction,
+    qbiDeduction,
+    taxableIncome,
+    federalTax,
+    ctc,
+    federalAfterCredits,
+    seTax: se.seTax,
+    stateTax,
+    localEIT,
+    localFlatFee: lst,
+    eitc,
+    netTax,
+    isRefund,
+    totalIncome,
+    effectiveRate,
+    takeHome,
+    quarterlyPayment: !isRefund && netTax > 0 ? netTax / 4 : 0,
+  };
 }
