@@ -22,13 +22,19 @@ import { useLocalStorageState } from "@/lib/useLocalStorageState";
  * decides which tier is actually active at runtime.
  */
 const SCRIPT = [
-  "Hey — I'm your Wealth Copilot.",
-  "Think of me like the assistant every big firm already has, except this one works for you.",
-  "Run your real tax numbers, plan your budget, and price your business with confidence.",
-  "Every number you enter stays right here — nothing is sent anywhere without you asking.",
-  "I'll explain what the numbers actually mean in plain English, every step of the way.",
-  "This is about building something that's genuinely yours. Let's get to it.",
+        const SCRIPT = [
+  "Greetings, I'm your Wealth Copilot.",
+  "Think of me as your personal assistant.",
+  "You can estimate your refund or your taxes due.",
+  "You can plan your budget or figure out your own net worth.",
+  "Every number you enter stays right here.",
+  "Nothing is sent anywhere without your permission.",
+  "I'll explain what the numbers actually mean in plain English.",
+  "Every step of the way.",
+  "This is about building something that is genuinely yours.",
+  "Let's get to it.",
 ];
+  
 
 const AUDIO_CANDIDATES = ["/audio/welcome.mp3", "/audio/welcome.m4a", "/audio/welcome.wav"];
 
