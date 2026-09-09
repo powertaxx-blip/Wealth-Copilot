@@ -50,4 +50,182 @@
     --status-critical: #f1667a;
     --status-critical-bg: #3a1420;
   }
+}:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #150a1c;
+  --paper: #211230;
+  --ink: #f7eefb;
+  --ink-soft: #d3bedd;
+  --muted: #a48fb0;
+  --navy: #f0dfff;
+  --navy-2: #c9a3ff;
+  --gold: #ffcb47;
+  --line: rgba(240, 223, 255, 0.16);
+  --line-soft: rgba(240, 223, 255, 0.08);
+  --status-good: #4ade94;
+  --status-good-bg: #123626;
+  --status-warning: #f0a73c;
+  --status-warning-bg: #3d2a10;
+  --status-critical: #f1667a;
+  --status-critical-bg: #3a1420;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  color: var(--navy);
+  margin: 0;
+}
+
+/* =========================================================
+   SHARED COMPONENT CLASSES
+   Same names/shapes as the HTML prototype (.card, .result-box,
+   .stat-strip, .status-pill …) so porting a panel is close to a
+   1:1 markup translation, not a redesign.
+   ========================================================= */
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+}
+
+/* Mentor's note, v2. The original was a plain left-border box with two
+   full sentences — correct, but forgettable. This version is built to
+   be read in under two seconds: a bold gradient bar instead of a thin
+   border, a giant quote glyph as a visual anchor, an uppercase eyebrow
+   label so it reads as a distinct voice (not just another paragraph),
+   and copy trimmed to one short line per use — see BreakEvenCalculator.tsx
+   and TaxEstimator.tsx, both cut from two sentences to one. */
+.mentor {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  /* Fixed brand tokens (not --navy/--navy-2) — see the comment where
+     --brand-surface is defined in the :root block above. Using the
+     theme-flipping tokens here was the QA-audit-caught dark-mode bug:
+     the gradient would invert to light while this text stayed light. */
+  background: linear-gradient(135deg, var(--brand-surface) 0%, var(--brand-accent) 100%);
+  color: var(--on-brand);
+  padding: 14px 18px 14px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  margin: 14px 0;
+  overflow: hidden;
+}
+.mentor::before {
+  content: "\201C";
+  font-family: var(--font-display);
+  font-size: 52px;
+  line-height: 1;
+  color: var(--gold);
+  opacity: 0.55;
+  flex-shrink: 0;
+  margin-top: -6px;
+}
+.mentor .eyebrow {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 3px;
+}
+.mentor b {
+  color: var(--gold);
+}
+
+/* Plain informational callout — EITC/filing-status notices, the AI
+   Insight panel's error fallback, anything that's a system message
+   rather than the mentor's voice. Kept visually distinct from .mentor
+   on purpose: a quote mark and "MENTOR'S NOTE" label on an eligibility
+   notice would misrepresent what kind of message it is. */
+.note {
+  background: var(--line-soft);
+  border-left: 4px solid var(--gold);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 14px 0;
+}
+.note b {
+  color: var(--navy);
+}
+
+/* Ported from the prototype's .info-tip / .tip-bubble — the small
+   clickable "i" badge inside result labels that reveals a plain-English
+   explanation. Used by components/ui/Tip.tsx. */
+.info-tip {
+  /* Now a real <button> (QA audit: was an unreachable bare <span> for
+     keyboard users) — reset the browser's default button chrome back to
+     the small circular badge look. */
+  appearance: none;
+  border: none;
+  font-family: inherit;
+  padding: 0;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  /* Fixed --brand-surface/--on-brand, not a translucent white-on-white —
+     the old rgba(255,255,255,0.18) circle with white text was only
+     legible sitting on a dark surface; everywhere it's actually used
+     (light cards, the .note callout) it was nearly invisible. Now a
+     small solid badge that reads the same everywhere, in both themes. */
+  background: var(--brand-surface);
+  color: var(--on-brand);
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 5px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.info-tip:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.info-tip .tip-bubble {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 20px;
+  width: 210px;
+  background: var(--navy);
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  padding: 9px 11px;
+  border-radius: 9px;
+  z-index: 30;
+  box-shadow: 0 8px 24px rgba(46, 15, 61, 0.32);
+  text-align: left;
 }
