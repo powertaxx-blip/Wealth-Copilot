@@ -22,7 +22,7 @@ import { useLocalStorageState } from "@/lib/useLocalStorageState";
  * decides which tier is actually active at runtime.
  */
 const SCRIPT = [
-        const SCRIPT = [
+
   "Greetings, I'm your Wealth Copilot.",
   "Think of me as your personal assistant.",
   "You can estimate your refund or your taxes due.",
