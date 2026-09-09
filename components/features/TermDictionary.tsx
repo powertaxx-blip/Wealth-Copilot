@@ -2,6 +2,16 @@
 
 import { useMemo, useState } from "react";
 
+/**
+ * The Term Dictionary — a plain-English glossary of every technical term
+ * that shows up on the Tax Estimator's results panel. The Tip component
+ * already answers "what does EITC mean?" one word at a time; this answers
+ * a bigger question the app hadn't addressed yet: "why should I care about
+ * any of this?" Each entry is deliberately two parts — a definition, and a
+ * separate "why it matters" line — because knowing what a term means and
+ * knowing why it's worth understanding are two different kinds of
+ * knowledge, and the second one is what actually changes a decision.
+ */
 type Term = { term: string; definition: string; whyItMatters: string };
 
 const TERMS: Term[] = [
@@ -42,16 +52,18 @@ const TERMS: Term[] = [
       "First-time freelancers get blindsided by this one — there's no employer quietly covering half of it anymore. It's on you now, both halves.",
   },
   {
-    term: "PA State Tax & Local EIT",
-    definition: "Pennsylvania's flat state rate, plus whatever your specific municipality or school district adds on top.",
+    term: "State Income Tax",
+    definition:
+      "Your selected state's own income tax, calculated automatically from that state's published 2025 rate schedule — flat-rate, bracketed, or $0 depending on the state.",
     whyItMatters:
-      "Local rates change block by block in PA. The number isn't the same for your neighbor two towns over — never assume, always check your own locality.",
+      "Nine states (Texas, Florida, Washington, and others) charge no wage income tax at all, while a few charge a top rate over 10%. Where you're taxed can matter as much as how much you earn.",
   },
   {
-    term: "Local Services Tax (LST)",
-    definition: "A small flat annual tax — up to $52/year — some PA municipalities charge everyone working there, regardless of income.",
+    term: "Local Tax & Flat Fee",
+    definition:
+      "City or county income tax, plus any small flat local fee — Pennsylvania's Local Services Tax (up to $52/year) is one well-known example, but plenty of other places nationwide have their own version.",
     whyItMatters:
-      "It's flat, not a percentage, so it's easy to forget next to the bigger numbers — but it still shows up on what you owe.",
+      "Local rates and fees change block by block nationwide — the number isn't the same for your neighbor two towns over. Never assume, always check your own locality.",
   },
   {
     term: "Earned Income Tax Credit (EITC)",
@@ -77,6 +89,7 @@ const TERMS: Term[] = [
       "Missing these carries its own IRS penalty, separate from whatever tax you owe. It stops being optional the moment you cross that threshold.",
   },
 ];
+
 export function TermDictionary() {
   const [query, setQuery] = useState("");
   const [openTerm, setOpenTerm] = useState<string | null>(null);
