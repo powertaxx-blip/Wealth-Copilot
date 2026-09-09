@@ -1,6 +1,7 @@
 /**
  * Tax Year 2025 (filed 2026) calculation core — federal, self-employment,
- * PA state + Chester County local, EITC, and Child Tax Credit.
+ * all-50-states-+-DC state tax, a generic local tax field, EITC, and Child
+ * Tax Credit.
  *
  * Direct port of the pure functions inside the `<script>` block of the
  * original prototype (`power-taxx-app.html`): FEDERAL_BRACKETS,
@@ -14,7 +15,15 @@
  * Source citations for the constants live as comments here exactly as
  * they did in the prototype: IRS Rev. Proc. 2024-40 for brackets/EITC,
  * OBBBA-adjusted standard deduction for 2025.
+ *
+ * State tax moved from a single hardcoded Pennsylvania rate to
+ * calcStateTax() in lib/stateTax.ts, covering all 50 states + DC — see
+ * that file for sourcing notes and the simplifications it makes. Local
+ * (city/county) tax stays a manual rate + flat-fee field, same as before,
+ * because there is no honest way to hardcode thousands of local
+ * jurisdictions nationwide.
  */
+import { calcStateTax, type USState } from "@/lib/stateTax";
 
 export type FilingStatus = "single" | "mfj" | "mfs" | "hoh";
 
@@ -45,7 +54,7 @@ export const CTC_PHASEOUT_START: Record<FilingStatus, number> = {
  *  MFS filers are generally ineligible for EITC (except rare
  *  separated-spouse exceptions), so MFS is excluded and handled as a
  *  special case in calcEITC(). */
-const EITC_TABLE: Record<
+const EITC_TABLE: Record
   number,
   { phaseInRate: number; maxCredit: number; phaseoutBegin: Partial<Record<FilingStatus, number>>; phaseoutRate: number }
 > = {
@@ -105,9 +114,9 @@ export type EstimatorInput = {
   seProfit: number;
   other: number;
   itemized: number;
-  paRatePct: number; // e.g. 3.07 for 3.07%
-  localRatePct: number; // e.g. 1.25 for 1.25%
-  includeLST: boolean;
+  state: USState; // e.g. "PA" — looked up in lib/stateTax.ts
+  localRatePct: number; // e.g. 1.25 for 1.25% — manually entered, city/county EIT-style rate
+  localFlatFee: number; // e.g. 52 for Pennsylvania's Local Services Tax — manually entered flat annual fee, $0 if none
 };
 
 export type EstimatorResult = {
@@ -119,9 +128,9 @@ export type EstimatorResult = {
   ctc: number;
   federalAfterCredits: number;
   seTax: number;
-  paTax: number;
+  stateTax: number;
   localEIT: number;
-  lst: number;
+  localFlatFee: number;
   eitc: number;
   netTax: number;
   isRefund: boolean;
@@ -130,6 +139,7 @@ export type EstimatorResult = {
   takeHome: number;
   quarterlyPayment: number; // 0 if not owed / refund
 };
+
 /**
  * Direct port of the vanilla-JS `runEstimator()` body, minus all DOM
  * reads/writes — it takes the seven form values as one object and
@@ -138,8 +148,7 @@ export type EstimatorResult = {
  * HTML strings itself.
  */
 export function estimateTax(input: EstimatorInput): EstimatorResult {
-  const { status, kids, wages, seProfit, other, itemized, includeLST } = input;
-  const paRate = input.paRatePct / 100;
+  const { status, kids, wages, seProfit, other, itemized, state, localFlatFee } = input;
   const localRate = input.localRatePct / 100;
 
   const se = calcSETax(seProfit);
@@ -152,6 +161,13 @@ export function estimateTax(input: EstimatorInput): EstimatorResult {
 
   const federalTax = calcFederalTax(taxableIncome, status);
 
+  // QA audit finding: unlike calcEITC (which already clamps kids to 0-3
+  // below), this line used the raw `kids` input directly. A negative value
+  // (reachable before this fix by typing "-2" into the UI, or always
+  // reachable by anyone calling estimateTax()/the API directly) produced a
+  // negative ctc, which made federalAfterCredits = federalTax - ctc go UP
+  // instead of the credit being ignored — the exact opposite of correct
+  // behavior. Clamped the same way calcEITC already does.
   const ctcKids = Math.max(0, Math.round(kids));
   let ctc = ctcKids * 2200;
   const phaseoutStart = CTC_PHASEOUT_START[status];
@@ -162,14 +178,17 @@ export function estimateTax(input: EstimatorInput): EstimatorResult {
   const federalAfterCredits = Math.max(0, federalTax - ctc);
 
   const earnedLocal = wages + seProfit;
-  const paTax = earnedLocal * paRate;
+  // State tax is applied to AGI, not to earned-income-only or to federal
+  // taxable income after the federal standard deduction — see the
+  // simplification note at the top of lib/stateTax.ts for why.
+  const stateTax = calcStateTax(state, agi, status);
   const localEIT = earnedLocal * localRate;
-  const lst = includeLST && earnedLocal > 12000 ? 52 : 0;
+  const lst = Math.max(0, localFlatFee);
 
   const earnedIncomeForEITC = wages + seProfit;
   const eitc = calcEITC(earnedIncomeForEITC, agi, kids, status, other);
 
-  const totalTaxBeforeEITC = federalAfterCredits + se.seTax + paTax + localEIT + lst;
+  const totalTaxBeforeEITC = federalAfterCredits + se.seTax + stateTax + localEIT + lst;
   const netTax = totalTaxBeforeEITC - eitc;
   const totalIncome = wages + seProfit + other;
   const effectiveRate = totalIncome > 0 ? (netTax / totalIncome) * 100 : 0;
@@ -185,9 +204,9 @@ export function estimateTax(input: EstimatorInput): EstimatorResult {
     ctc,
     federalAfterCredits,
     seTax: se.seTax,
-    paTax,
+    stateTax,
     localEIT,
-    lst,
+    localFlatFee: lst,
     eitc,
     netTax,
     isRefund,
@@ -197,4 +216,3 @@ export function estimateTax(input: EstimatorInput): EstimatorResult {
     quarterlyPayment: !isRefund && netTax > 0 ? netTax / 4 : 0,
   };
 }
-
