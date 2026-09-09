@@ -282,4 +282,198 @@ export const STATE_TAX_RULES: Record<USState, StateRule> = {
   // Massachusetts — flat 5% base rate, verified directly against Mass.gov;
   // the well-known "Millionaire's Tax" 4% surtax above $1,083,150 (TY2025,
   // inflation-indexed) is modeled below in STATE_SURTAX.
-  MA: { kind: "flat", rate: 0.05 },
+  MA: { kind: "flat", rate: 0.05 },   MI: { kind: "flat", rate: 0.0425 },
+  MN: {
+    kind: "brackets",
+    single: [
+      { rate: 0.0535, upTo: 32570 },
+      { rate: 0.068, upTo: 106990 },
+      { rate: 0.0785, upTo: 198630 },
+      { rate: 0.0985, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.0535, upTo: 47620 },
+      { rate: 0.068, upTo: 189180 },
+      { rate: 0.0785, upTo: 330410 },
+      { rate: 0.0985, upTo: null },
+    ],
+  },
+  // Mississippi — under the Tax Freedom Act of 2022 as amended in 2025,
+  // the flat rate is on a multi-year glide path down; 4.4% is the correct
+  // TY2025 figure (2024 was 4.7%, 2026 drops to 4.0%). The first $10,000
+  // of taxable income is untaxed, modeled here as a 0% bracket rather than
+  // folded into the flat rate.
+  MS: {
+    kind: "brackets",
+    single: [{ rate: 0, upTo: 10000 }, { rate: 0.044, upTo: null }],
+    mfj: [{ rate: 0, upTo: 10000 }, { rate: 0.044, upTo: null }],
+  },
+  // Missouri — verified directly against the Missouri Dept. of Revenue;
+  // brackets are inflation-indexed annually (hence the non-round
+  // thresholds) and are identical for single and MFJ filers.
+  MO: {
+    kind: "brackets",
+    single: [
+      { rate: 0, upTo: 1313 },
+      { rate: 0.02, upTo: 2626 },
+      { rate: 0.025, upTo: 3939 },
+      { rate: 0.03, upTo: 5252 },
+      { rate: 0.035, upTo: 6565 },
+      { rate: 0.04, upTo: 7878 },
+      { rate: 0.045, upTo: 9191 },
+      { rate: 0.047, upTo: null },
+    ],
+    mfj: [
+      { rate: 0, upTo: 1313 },
+      { rate: 0.02, upTo: 2626 },
+      { rate: 0.025, upTo: 3939 },
+      { rate: 0.03, upTo: 5252 },
+      { rate: 0.035, upTo: 6565 },
+      { rate: 0.04, upTo: 7878 },
+      { rate: 0.045, upTo: 9191 },
+      { rate: 0.047, upTo: null },
+    ],
+  },
+  MT: {
+    kind: "brackets",
+    single: [{ rate: 0.047, upTo: 21100 }, { rate: 0.059, upTo: null }],
+    mfj: [{ rate: 0.047, upTo: 42200 }, { rate: 0.059, upTo: null }],
+  },
+  NE: {
+    kind: "brackets",
+    single: [
+      { rate: 0.0246, upTo: 4030 },
+      { rate: 0.0351, upTo: 24120 },
+      { rate: 0.0501, upTo: 38870 },
+      { rate: 0.052, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.0246, upTo: 8040 },
+      { rate: 0.0351, upTo: 48250 },
+      { rate: 0.0501, upTo: 77730 },
+      { rate: 0.052, upTo: null },
+    ],
+  },
+  NV: { kind: "none" },
+  // New Hampshire — the old Interest & Dividends Tax (3%, and it never
+  // touched wages in the first place) was fully repealed effective tax
+  // year 2025. Confirmed directly against N.H. DRA's own repeal notice,
+  // not carried over from an outdated assumption.
+  NH: { kind: "none" },
+  NJ: {
+    kind: "brackets",
+    single: [
+      { rate: 0.014, upTo: 20000 },
+      { rate: 0.0175, upTo: 35000 },
+      { rate: 0.035, upTo: 40000 },
+      { rate: 0.05525, upTo: 75000 },
+      { rate: 0.0637, upTo: 500000 },
+      { rate: 0.0897, upTo: 1000000 },
+      { rate: 0.1075, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.014, upTo: 20000 },
+      { rate: 0.0175, upTo: 50000 },
+      { rate: 0.0245, upTo: 70000 },
+      { rate: 0.035, upTo: 80000 },
+      { rate: 0.05525, upTo: 150000 },
+      { rate: 0.0637, upTo: 500000 },
+      { rate: 0.0897, upTo: 1000000 },
+      { rate: 0.1075, upTo: null },
+    ],
+  },
+  NM: {
+    kind: "brackets",
+    single: [
+      { rate: 0.015, upTo: 5500 },
+      { rate: 0.032, upTo: 16500 },
+      { rate: 0.043, upTo: 33500 },
+      { rate: 0.047, upTo: 66500 },
+      { rate: 0.049, upTo: 210000 },
+      { rate: 0.059, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.015, upTo: 8000 },
+      { rate: 0.032, upTo: 25000 },
+      { rate: 0.043, upTo: 50000 },
+      { rate: 0.047, upTo: 100000 },
+      { rate: 0.049, upTo: 315000 },
+      { rate: 0.059, upTo: null },
+    ],
+  },
+  // New York — cross-checked against a second independent source; NYC and
+  // Yonkers levy their own separate additional local income tax on top of
+  // this, not modeled here (use the local-rate field for that).
+  NY: {
+    kind: "brackets",
+    single: [
+      { rate: 0.04, upTo: 8500 },
+      { rate: 0.045, upTo: 11700 },
+      { rate: 0.0525, upTo: 13900 },
+      { rate: 0.055, upTo: 80650 },
+      { rate: 0.06, upTo: 215400 },
+      { rate: 0.0685, upTo: 1077550 },
+      { rate: 0.0965, upTo: 5000000 },
+      { rate: 0.103, upTo: 25000000 },
+      { rate: 0.109, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.04, upTo: 17150 },
+      { rate: 0.045, upTo: 23600 },
+      { rate: 0.0525, upTo: 27900 },
+      { rate: 0.055, upTo: 161550 },
+      { rate: 0.06, upTo: 323200 },
+      { rate: 0.0685, upTo: 2155350 },
+      { rate: 0.0965, upTo: 5000000 },
+      { rate: 0.103, upTo: 25000000 },
+      { rate: 0.109, upTo: null },
+    ],
+  },
+  NC: { kind: "flat", rate: 0.0425 },
+  // North Dakota — verified directly against the ND Office of State Tax
+  // Commissioner. Lowest top marginal rate of any state that has one.
+  ND: {
+    kind: "brackets",
+    single: [{ rate: 0, upTo: 48475 }, { rate: 0.0195, upTo: 244825 }, { rate: 0.025, upTo: null }],
+    mfj: [{ rate: 0, upTo: 80975 }, { rate: 0.0195, upTo: 298075 }, { rate: 0.025, upTo: null }],
+  },
+  OH: {
+    kind: "brackets",
+    single: [{ rate: 0, upTo: 26050 }, { rate: 0.0275, upTo: 100000 }, { rate: 0.035, upTo: null }],
+    mfj: [{ rate: 0, upTo: 26050 }, { rate: 0.0275, upTo: 100000 }, { rate: 0.035, upTo: null }],
+  },
+  OK: {
+    kind: "brackets",
+    single: [
+      { rate: 0.0025, upTo: 1000 },
+      { rate: 0.0075, upTo: 2500 },
+      { rate: 0.0175, upTo: 3750 },
+      { rate: 0.0275, upTo: 4900 },
+      { rate: 0.0375, upTo: 7200 },
+      { rate: 0.0475, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.0025, upTo: 2000 },
+      { rate: 0.0075, upTo: 5000 },
+      { rate: 0.0175, upTo: 7500 },
+      { rate: 0.0275, upTo: 9800 },
+      { rate: 0.0375, upTo: 14400 },
+      { rate: 0.0475, upTo: null },
+    ],
+  },
+  OR: {
+    kind: "brackets",
+    single: [
+      { rate: 0.0475, upTo: 4400 },
+      { rate: 0.0675, upTo: 11050 },
+      { rate: 0.0875, upTo: 125000 },
+      { rate: 0.099, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.0475, upTo: 8800 },
+      { rate: 0.0675, upTo: 22100 },
+      { rate: 0.0875, upTo: 250000 },
+      { rate: 0.099, upTo: null },
+    ],
+  },
+  PA: { kind: "flat", rate: 0.0307 },
