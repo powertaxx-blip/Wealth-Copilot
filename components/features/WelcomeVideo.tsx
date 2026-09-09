@@ -188,4 +188,158 @@ export function WelcomeVideo({ onClose }: { onClose: () => void }) {
     }
     if (speechSupported) window.speechSynthesis.cancel();
     onClose();
+  } 
+
+  const hasRealNarration = audioReady || speechSupported;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Welcome to Wealth Copilot"
+      onClick={handleClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(28, 16, 36, 0.72)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 100,
+        padding: "20px",
+      }}
+    >
+      {!audioFailed && (
+        <audio
+          ref={audioRef}
+          src={AUDIO_CANDIDATES[audioSrcIndex]}
+          preload="metadata"
+          onError={handleAudioError}
+          onLoadedMetadata={handleAudioMetadata}
+          onTimeUpdate={handleAudioTimeUpdate}
+          onEnded={() => setStatus("finished")}
+          style={{ display: "none" }}
+        />
+      )}
+
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="card"
+        style={{ maxWidth: "480px", width: "100%", position: "relative", textAlign: "center" }}
+      >
+        <button
+          type="button"
+          onClick={handleClose}
+          aria-label="Close welcome video"
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 14,
+            background: "transparent",
+            border: "none",
+            fontSize: "20px",
+            color: "var(--muted)",
+            cursor: "pointer",
+            lineHeight: 1,
+          }}
+        >
+          ×
+        </button>
+
+        <span
+          className="w-fit rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide"
+          style={{ background: "var(--line-soft)", color: "var(--navy-2)", display: "inline-block" }}
+        >
+          Welcome to Wealth Copilot
+        </span>
+
+        <div className="mt-4 flex justify-center">
+          <AICharacterAvatar speaking={status === "playing"} />
+        </div>
+
+        <div
+          className="mt-4"
+          style={{ minHeight: "72px", display: "flex", alignItems: "center", justifyContent: "center" }}
+        >
+          <p style={{ fontSize: "16px", color: "var(--ink)", fontWeight: 500 }}>
+            {status === "idle" ? "Press play to meet your Wealth Copilot." : SCRIPT[lineIndex]}
+          </p>
+        </div>
+
+        {status === "finished" && (
+          <p className="text-sm mt-1" style={{ color: "var(--status-good)" }}>
+            That's the whole idea — you're ready to dive in.
+          </p>
+        )}
+
+        {!hasRealNarration && status !== "idle" && (
+          <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>
+            Your browser doesn&apos;t support spoken narration, so here it is in captions instead.
+          </p>
+        )}
+
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          {status === "idle" && (
+            <button type="button" onClick={handlePlay} className="btn gold">
+              ▶ Play Welcome
+            </button>
+          )}
+          {status === "playing" && hasRealNarration && (
+            <button type="button" onClick={handlePause} className="btn ghost">
+              ⏸ Pause
+            </button>
+          )}
+          {status === "playing" && !hasRealNarration && (
+            <button type="button" onClick={handleNextLine} className="btn gold">
+              Next →
+            </button>
+          )}
+          {status === "paused" && (
+            <button type="button" onClick={handleResume} className="btn gold">
+              ▶ Resume
+            </button>
+          )}
+          {status === "finished" && (
+            <button type="button" onClick={handleReplay} className="btn ghost">
+              ↻ Replay
+            </button>
+          )}
+          <button type="button" onClick={handleClose} className="btn ghost">
+            {status === "finished" ? "Get Started" : "Skip"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Wrapper that decides *whether* to show the video: automatically, once,
+ * for a person who's never seen it (tracked in localStorage the same way
+ * every other panel's state is), and otherwise available on demand from a
+ * plain "Watch the welcome video" button.
+ */
+export function WelcomeVideoLauncher() {
+  const [seen, setSeen] = useLocalStorageState<boolean>("wc.welcomeVideoSeen", false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!seen) setOpen(true);
+  }, [seen]);
+
+  function close() {
+    setOpen(false);
+    setSeen(true);
   }
+
+  return (
+    <>
+      {!open && (
+        <button type="button" onClick={() => setOpen(true)} className="btn ghost">
+          ▶ Watch the Welcome Video
+        </button>
+      )}
+      {open && <WelcomeVideo onClose={close} />}
+    </>
+  );
+}
