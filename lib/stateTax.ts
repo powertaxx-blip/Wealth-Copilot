@@ -476,4 +476,165 @@ export const STATE_TAX_RULES: Record<USState, StateRule> = {
       { rate: 0.099, upTo: null },
     ],
   },
-  PA: { kind: "flat", rate: 0.0307 },
+  PA: { kind: "flat", rate: 0.0307 },   RI: {
+    kind: "brackets",
+    single: [{ rate: 0.0375, upTo: 79900 }, { rate: 0.0475, upTo: 181650 }, { rate: 0.0599, upTo: null }],
+    mfj: [{ rate: 0.0375, upTo: 79900 }, { rate: 0.0475, upTo: 181650 }, { rate: 0.0599, upTo: null }],
+  },
+  // South Carolina — two SCDOR documents disagreed (6% on the DOR's own
+  // current individual-income-tax page vs. 6.2% on one 2025 withholding
+  // PDF). Went with 6%, the figure stated in plain language on SCDOR's
+  // primary IIT page, and flagged here in case SCDOR later reconciles the
+  // two — worth a periodic re-check against dor.sc.gov/iit.
+  SC: {
+    kind: "brackets",
+    single: [{ rate: 0, upTo: 3560 }, { rate: 0.03, upTo: 17830 }, { rate: 0.06, upTo: null }],
+    mfj: [{ rate: 0, upTo: 3560 }, { rate: 0.03, upTo: 17830 }, { rate: 0.06, upTo: null }],
+  },
+  SD: { kind: "none" },
+  TN: { kind: "none" },
+  TX: { kind: "none" },
+  UT: { kind: "flat", rate: 0.0455 },
+  VT: {
+    kind: "brackets",
+    single: [
+      { rate: 0.0335, upTo: 47900 },
+      { rate: 0.066, upTo: 116000 },
+      { rate: 0.076, upTo: 242000 },
+      { rate: 0.0875, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.0335, upTo: 79950 },
+      { rate: 0.066, upTo: 193300 },
+      { rate: 0.076, upTo: 294600 },
+      { rate: 0.0875, upTo: null },
+    ],
+  },
+  VA: {
+    kind: "brackets",
+    single: [{ rate: 0.02, upTo: 3000 }, { rate: 0.03, upTo: 5000 }, { rate: 0.05, upTo: 17000 }, { rate: 0.0575, upTo: null }],
+    mfj: [{ rate: 0.02, upTo: 3000 }, { rate: 0.03, upTo: 5000 }, { rate: 0.05, upTo: 17000 }, { rate: 0.0575, upTo: null }],
+  },
+  WA: { kind: "none" },
+  WV: {
+    kind: "brackets",
+    single: [
+      { rate: 0.0222, upTo: 10000 },
+      { rate: 0.0296, upTo: 25000 },
+      { rate: 0.0333, upTo: 40000 },
+      { rate: 0.0444, upTo: 60000 },
+      { rate: 0.0482, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.0222, upTo: 10000 },
+      { rate: 0.0296, upTo: 25000 },
+      { rate: 0.0333, upTo: 40000 },
+      { rate: 0.0444, upTo: 60000 },
+      { rate: 0.0482, upTo: null },
+    ],
+  },
+  WI: {
+    kind: "brackets",
+    single: [
+      { rate: 0.035, upTo: 14680 },
+      { rate: 0.044, upTo: 29370 },
+      { rate: 0.053, upTo: 323290 },
+      { rate: 0.0765, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.035, upTo: 19580 },
+      { rate: 0.044, upTo: 39150 },
+      { rate: 0.053, upTo: 431060 },
+      { rate: 0.0765, upTo: null },
+    ],
+  },
+  WY: { kind: "none" },
+  DC: {
+    kind: "brackets",
+    single: [
+      { rate: 0.04, upTo: 10000 },
+      { rate: 0.06, upTo: 40000 },
+      { rate: 0.065, upTo: 60000 },
+      { rate: 0.085, upTo: 250000 },
+      { rate: 0.0925, upTo: 500000 },
+      { rate: 0.0975, upTo: 1000000 },
+      { rate: 0.1075, upTo: null },
+    ],
+    mfj: [
+      { rate: 0.04, upTo: 10000 },
+      { rate: 0.06, upTo: 40000 },
+      { rate: 0.065, upTo: 60000 },
+      { rate: 0.085, upTo: 250000 },
+      { rate: 0.0925, upTo: 500000 },
+      { rate: 0.0975, upTo: 1000000 },
+      { rate: 0.1075, upTo: null },
+    ],
+  },
+};
+
+/** Only two states have a surtax simple enough (one flat extra rate above
+ * one fixed threshold) to model honestly without a full state-specific tax
+ * base. Minnesota also has a 1% surtax, but only on net investment income
+ * above $1M — this estimator doesn't separately track investment income
+ * from other "other income," so it's deliberately left unmodeled rather
+ * than approximated incorrectly. */
+const STATE_SURTAX: Partial<Record<USState, Surtax>> = {
+  CA: { thresholdSingle: 1000000, thresholdMFJ: 1000000, rate: 0.01 }, // Mental Health Services Tax
+  MA: { thresholdSingle: 1083150, thresholdMFJ: 1083150, rate: 0.04 }, // "Millionaire's Tax", TY2025 threshold
+};
+
+/** MFS and HOH filers use the "single" bracket set as an approximation —
+ * most states either publish no separate MFS schedule (defaulting to
+ * single) or, for HOH, a schedule this estimator doesn't have room to add
+ * for all 50 states. This mirrors the app's existing philosophy: a fast,
+ * clearly-labeled estimate, not a substitute for a real return. */
+function bracketsFor(rule: Extract<StateRule, { kind: "brackets" }>, status: FilingStatus): Bracket[] {
+  return status === "mfj" ? rule.mfj : rule.single;
+}
+
+function calcBracketTax(income: number, brackets: Bracket[]): number {
+  let tax = 0;
+  let floor = 0;
+  for (const b of brackets) {
+    const ceiling = b.upTo ?? Infinity;
+    if (income > floor) {
+      tax += (Math.min(income, ceiling) - floor) * b.rate;
+    } else {
+      break;
+    }
+    floor = ceiling;
+  }
+  return tax;
+}
+
+/**
+ * State income tax for one state, applied to `taxableIncome` (this app
+ * passes federal AGI — see the file-level comment for why). Returns 0 for
+ * every no-tax state, including Washington (wage income only — WA's real
+ * capital-gains tax isn't modeled since this estimator has no
+ * capital-gains input).
+ */
+export function calcStateTax(state: USState, taxableIncome: number, status: FilingStatus): number {
+  if (NO_TAX_STATES.has(state)) return 0;
+  const income = Math.max(0, taxableIncome);
+  const rule = STATE_TAX_RULES[state];
+
+  let tax: number;
+  if (rule.kind === "none") {
+    tax = 0;
+  } else if (rule.kind === "flat") {
+    tax = income * rule.rate;
+  } else {
+    tax = calcBracketTax(income, bracketsFor(rule, status));
+  }
+
+  const surtax = STATE_SURTAX[state];
+  if (surtax) {
+    const threshold = status === "mfj" ? surtax.thresholdMFJ : surtax.thresholdSingle;
+    if (income > threshold) {
+      tax += (income - threshold) * surtax.rate;
+    }
+  }
+
+  return tax;
+}
