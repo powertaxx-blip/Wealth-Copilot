@@ -136,7 +136,7 @@ export function TaxEstimator() {
           { v: fmt(r.seTax), k: "Self-Employment Tax" },
           { v: fmt(r.stateTax), k: `${stateLabel} State Tax` },
           { v: fmt(r.localEIT + r.localFlatFee), k: "Local Tax + Flat Fee" },
-          { v: `-${fmt(r.eitc)}`, k: "EITC" },
+          { v: r.eitc > 0 ? `-${fmt(r.eitc)}` : fmt(0), k: "EITC (credit — reduces tax owed)" },
           { v: `${r.effectiveRate.toFixed(1)}%`, k: "Effective Tax Rate" },
           { v: fmt(r.takeHome), k: "Estimated Take-Home" },
         ]}
