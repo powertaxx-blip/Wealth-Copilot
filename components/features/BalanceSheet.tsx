@@ -221,3 +221,113 @@ export function BalanceSheet() {
             <td className="num">{fmt(totals.totalAssets)}</td>
           </tr>
         </tfoot>
+              <div className="grid gap-6 sm:grid-cols-2">
+        <div>
+          <h3 className="text-lg">Assets</h3>
+          <div className="flex flex-col gap-3">
+            <NumberField label="Cash & bank balances" value={state.cash} onChange={(v) => set("cash", v)} />
+            <NumberField
+              label={nonprofit ? "Pledges / grants receivable" : "Accounts receivable (owed to you)"}
+              value={state.ar}
+              onChange={(v) => set("ar", v)}
+            />
+            <NumberField label="Inventory" value={state.inv} onChange={(v) => set("inv", v)} />
+            <NumberField label="Equipment & vehicles" value={state.equip} onChange={(v) => set("equip", v)} />
+            <NumberField label="Property / real estate" value={state.property} onChange={(v) => set("property", v)} />
+            <NumberField label="Other assets" value={state.otherAsset} onChange={(v) => set("otherAsset", v)} />
+          </div>
+        </div>
+        <div>
+          <h3 className="text-lg">Liabilities</h3>
+          <div className="flex flex-col gap-3">
+            <NumberField label="Accounts payable (you owe)" value={state.ap} onChange={(v) => set("ap", v)} />
+            <NumberField label="Credit card balances" value={state.cc} onChange={(v) => set("cc", v)} />
+            <NumberField
+              label="Short-term loans (due < 1 yr)"
+              value={state.stloan}
+              onChange={(v) => set("stloan", v)}
+            />
+            <NumberField
+              label="Long-term loans / mortgage"
+              value={state.ltloan}
+              onChange={(v) => set("ltloan", v)}
+            />
+            <NumberField label="Other liabilities" value={state.otherLiab} onChange={(v) => set("otherLiab", v)} />
+          </div>
+          <h3 className="text-lg mt-4">{bottomLabel}</h3>
+          <div className="flex flex-col gap-3">
+            {nonprofit ? (
+              <>
+                <NumberField
+                  label="Net assets without donor restrictions"
+                  value={state.netWithoutRestriction}
+                  onChange={(v) => set("netWithoutRestriction", v)}
+                />
+                <NumberField
+                  label="Net assets with donor restrictions"
+                  value={state.netWithRestriction}
+                  onChange={(v) => set("netWithRestriction", v)}
+                />
+              </>
+            ) : (
+              <>
+                <NumberField
+                  label="Owner contributions (capital put in)"
+                  value={state.contrib}
+                  onChange={(v) => set("contrib", v)}
+                />
+                <NumberField
+                  label="Retained earnings (profit kept in business)"
+                  value={state.retained}
+                  onChange={(v) => set("retained", v)}
+                />
+                <NumberField
+                  label="Owner draws (money taken out)"
+                  value={state.draws}
+                  onChange={(v) => set("draws", v)}
+                />
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Assets</th>
+            <th className="num"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cash & bank balances</td>
+            <td className="num">{fmt(state.cash)}</td>
+          </tr>
+          <tr>
+            <td>{nonprofit ? "Pledges / grants receivable" : "Accounts receivable"}</td>
+            <td className="num">{fmt(state.ar)}</td>
+          </tr>
+          <tr>
+            <td>Inventory</td>
+            <td className="num">{fmt(state.inv)}</td>
+          </tr>
+          <tr>
+            <td>Equipment & vehicles</td>
+            <td className="num">{fmt(state.equip)}</td>
+          </tr>
+          <tr>
+            <td>Property / real estate</td>
+            <td className="num">{fmt(state.property)}</td>
+          </tr>
+          <tr>
+            <td>Other assets</td>
+            <td className="num">{fmt(state.otherAsset)}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Total Assets</td>
+            <td className="num">{fmt(totals.totalAssets)}</td>
+          </tr>
+        </tfoot>
