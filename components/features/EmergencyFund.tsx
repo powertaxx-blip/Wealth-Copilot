@@ -85,3 +85,78 @@ export function EmergencyFund() {
           the fund gets built the same way, month after month, not in one leap.
         </div>
       </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <NumberField
+          label="Monthly essential expenses"
+          value={state.expenses}
+          onChange={(v) => set("expenses", v)}
+        />
+        <NumberField label="Current emergency savings" value={state.savings} onChange={(v) => set("savings", v)} />
+        <SelectField
+          label="Target coverage"
+          value={state.targetMonths}
+          onChange={(v) => set("targetMonths", v)}
+          options={TARGET_MONTHS_OPTIONS}
+        />
+      </div>
+      <TextField
+        label="Target date to reach full coverage (optional)"
+        value={state.targetDate}
+        onChange={(v) => set("targetDate", v)}
+        placeholder="e.g., 2027-06-01"
+      />
+
+      <ResultBox
+        label="Months of expenses currently covered"
+        big={`${r.monthsCovered.toFixed(1)} months`}
+        stats={[
+          { v: fmt(r.targetAmount), k: "Target Fund" },
+          { v: fmt(state.savings), k: "Current Savings" },
+          { v: fmt(r.gap), k: "Remaining Gap" },
+        ]}
+      />
+
+      <div
+        className="mt-3"
+        style={{ height: 12, borderRadius: 999, background: "var(--line-soft)", overflow: "hidden" }}
+      >
+        <div
+          style={{
+            height: "100%",
+            width: `${r.percentFunded}%`,
+            background: `var(--status-${r.tone})`,
+            transition: "width 0.2s ease",
+          }}
+        />
+      </div>
+      <div className="mt-2 flex items-center justify-between text-xs" style={{ color: "var(--muted)" }}>
+        <span>$0</span>
+        <span>
+          {fmt(r.targetAmount)} target ({r.targetMonths} mo.)
+        </span>
+      </div>
+      <div className="mt-3">
+        <StatusPill tone={r.tone}>
+          {r.label} — {r.percentFunded.toFixed(0)}% funded
+        </StatusPill>
+      </div>
+
+      {r.monthlyNeeded !== null && (
+        <div className="mentor mt-3">
+          <div>
+            <span className="eyebrow">To Hit Full Coverage</span>
+            By {state.targetDate}: set aside about {fmt(r.monthlyNeeded)}/month for the next {r.monthsUntil} month
+            {r.monthsUntil === 1 ? "" : "s"}.
+          </div>
+        </div>
+      )}
+
+      <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+        3–6 months is the common rule of thumb for employees; business owners with less predictable income often
+        aim for 6–12 months instead.
+      </p>
+    </Card>
+  );
+}
+      
