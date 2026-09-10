@@ -130,3 +130,133 @@ export function BalanceSheet() {
           </div>
         </div>
       </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Assets</th>
+            <th className="num"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cash & bank balances</td>
+            <td className="num">{fmt(state.cash)}</td>
+          </tr>
+          <tr>
+            <td>Accounts receivable</td>
+            <td className="num">{fmt(state.ar)}</td>
+          </tr>
+          <tr>
+            <td>Inventory</td>
+            <td className="num">{fmt(state.inv)}</td>
+          </tr>
+          <tr>
+            <td>Equipment & vehicles</td>
+            <td className="num">{fmt(state.equip)}</td>
+          </tr>
+          <tr>
+            <td>Property / real estate</td>
+            <td className="num">{fmt(state.property)}</td>
+          </tr>
+          <tr>
+            <td>Other assets</td>
+            <td className="num">{fmt(state.otherAsset)}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Total Assets</td>
+            <td className="num">{fmt(totals.totalAssets)}</td>
+          </tr>
+        </tfoot>
+        <thead>
+          <tr>
+            <th>Liabilities</th>
+            <th className="num"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Accounts payable</td>
+            <td className="num">{fmt(state.ap)}</td>
+          </tr>
+          <tr>
+            <td>Credit card balances</td>
+            <td className="num">{fmt(state.cc)}</td>
+          </tr>
+          <tr>
+            <td>Short-term loans</td>
+            <td className="num">{fmt(state.stloan)}</td>
+          </tr>
+          <tr>
+            <td>Long-term loans / mortgage</td>
+            <td className="num">{fmt(state.ltloan)}</td>
+          </tr>
+          <tr>
+            <td>Other liabilities</td>
+            <td className="num">{fmt(state.otherLiab)}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Total Liabilities</td>
+            <td className="num">{fmt(totals.totalLiabilities)}</td>
+          </tr>
+        </tfoot>
+        <thead>
+          <tr>
+            <th>Equity</th>
+            <th className="num"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Owner contributions</td>
+            <td className="num">{fmt(state.contrib)}</td>
+          </tr>
+          <tr>
+            <td>Retained earnings</td>
+            <td className="num">{fmt(state.retained)}</td>
+          </tr>
+          <tr>
+            <td>Owner draws</td>
+            <td className="num">-{fmt(state.draws)}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Total Equity</td>
+            <td className="num">{fmt(totals.totalEquity)}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div
+        className="result-box mt-4"
+        style={{ background: totals.balanced ? "var(--status-good-bg)" : "var(--status-critical-bg)" }}
+      >
+        <div className="label" style={{ color: totals.balanced ? "var(--status-good)" : "var(--status-critical)" }}>
+          {totals.balanced ? "✓ Balanced — Assets = Liabilities + Equity" : "⚠ Not balanced yet"}
+        </div>
+        <div className="big" style={{ color: totals.balanced ? "var(--status-good)" : "var(--status-critical)" }}>
+          {fmt(totals.totalAssets)} {totals.balanced ? "=" : "≠"} {fmt(totals.totalLiabEquity)}
+        </div>
+        {!totals.balanced && (
+          <p className="mt-2 text-sm" style={{ color: "var(--ink-soft)" }}>
+            Difference of {fmt(Math.abs(totals.diff))} —{" "}
+            {totals.diff > 0
+              ? "you have assets not yet accounted for in liabilities or equity (often means retained earnings should be higher)."
+              : "your liabilities + equity exceed assets (check for a data entry error, or equity should be lower)."}
+          </p>
+        )}
+      </div>
+
+      <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+        This is a simplified single-period snapshot for demo and educational purposes. A full balance sheet for
+        filing or audit purposes should tie back to your bookkeeping ledger (QuickBooks, etc.) and be reviewed by a
+        professional.
+      </p>
+    </Card>
+  );
+}
