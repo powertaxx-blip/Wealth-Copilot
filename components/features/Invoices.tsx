@@ -120,3 +120,134 @@ export function Invoices() {
               placeholder="e.g., 456 Oak Ave, Philadelphia, PA"
             />
           </div>
+          
+          <h3 className="text-lg">Invoice Details</h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextField label="Invoice number" value={draft.invoiceNumber} onChange={(v) => set("invoiceNumber", v)} />
+            <NumberField label="Tax rate (%)" value={draft.taxRatePct} onChange={(v) => set("taxRatePct", v)} step={0.01} />
+            <TextField label="Invoice date" value={draft.date} onChange={(v) => set("date", v)} placeholder="e.g., 2026-09-10" />
+            <TextField label="Due date" value={draft.dueDate} onChange={(v) => set("dueDate", v)} placeholder="e.g., 2026-09-24" />
+          </div>
+
+          <h3 className="text-lg">Line Items</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th className="num">Qty</th>
+                <th className="num">Rate</th>
+                <th className="num">Amount</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {draft.lineItems.map((li) => (
+                <tr key={li.id}>
+                  <td>
+                    <input
+                      type="text"
+                      value={li.description}
+                      onChange={(e) => updateLineItem(li.id, "description", e.target.value)}
+                      placeholder="Service or item"
+                      style={inputStyle}
+                    />
+                  </td>
+                  <td className="num">
+                    <input
+                      type="number"
+                      value={li.qty}
+                      min={0}
+                      onChange={(e) => updateLineItem(li.id, "qty", Math.max(0, parseFloat(e.target.value) || 0))}
+                      style={{ ...inputStyle, width: 70, textAlign: "right" }}
+                    />
+                  </td>
+                  <td className="num">
+                    <input
+                      type="number"
+                      value={li.rate}
+                      min={0}
+                      step={0.01}
+                      onChange={(e) => updateLineItem(li.id, "rate", Math.max(0, parseFloat(e.target.value) || 0))}
+                      style={{ ...inputStyle, width: 90, textAlign: "right" }}
+                    />
+                  </td>
+                  <td className="num">{fmt(li.qty * li.rate)}</td>
+                  <td>
+                    <button className="btn ghost" onClick={() => removeLineItem(li.id)} disabled={draft.lineItems.length <= 1}>
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button className="btn ghost mt-2" onClick={addLineItem}>
+            + Add Line Item
+          </button>
+
+          <TextField label="Notes / payment terms" value={draft.notes} onChange={(v) => set("notes", v)} />
+
+          <ResultBox
+            label="Invoice total"
+            big={fmt(totals.total)}
+            stats={[
+              { v: fmt(totals.subtotal), k: "Subtotal" },
+              { v: fmt(totals.tax), k: "Tax" },
+            ]}
+          />
+
+          <div className="mt-2 flex flex-wrap gap-3">
+            <button className="btn gold" onClick={saveInvoice}>
+              Save Invoice
+            </button>
+            <button className="btn ghost" onClick={printInvoice}>
+              Print / Save as PDF
+            </button>
+            <button className="btn ghost" onClick={newInvoice}>
+              Start New Invoice
+            </button>
+          </div>
+
+          <h3 className="text-lg">Saved Invoices</h3>
+          {savedInvoices.length === 0 ? (
+            <p className="text-sm" style={{ color: "var(--muted)" }}>
+              No invoices saved yet — build one above and click &quot;Save Invoice.&quot;
+            </p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Number</th>
+                  <th>Client</th>
+                  <th>Date</th>
+                  <th className="num">Total</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {savedInvoices.map((inv) => (
+                  <tr key={inv.id}>
+                    <td>{inv.invoiceNumber}</td>
+                    <td>{inv.clientName || "(no client name)"}</td>
+                    <td>{inv.date}</td>
+                    <td className="num">{fmt(calcInvoiceTotals(inv).total)}</td>
+                    <td className="flex gap-2">
+                      <button className="btn ghost" onClick={() => loadInvoice(inv)}>
+                        Load
+                      </button>
+                      <button className="btn ghost" onClick={() => deleteInvoice(inv.id)}>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+            Everything here lives only in this browser for now — nothing is emailed automatically yet. Load a saved
+            invoice, then use &quot;Print / Save as PDF&quot; to get a clean copy to send.
+          </p>
+        </Card>
+      </div>
