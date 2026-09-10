@@ -97,3 +97,53 @@ export function MileageTracker() {
           Enter miles greater than 0 before adding the trip.
         </p>
       )}
+      
+      <h3 className="text-lg">Trip Log</h3>
+      {trips.length === 0 ? (
+        <p className="text-sm" style={{ color: "var(--muted)" }}>
+          No trips logged yet — add your first one above.
+        </p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Purpose</th>
+              <th className="num">Miles</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {trips.map((t) => (
+              <tr key={t.id}>
+                <td>{t.date}</td>
+                <td>{t.purpose}</td>
+                <td className="num">{t.miles.toLocaleString()}</td>
+                <td>
+                  <button className="btn ghost" onClick={() => removeTrip(t.id)}>
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <ResultBox
+        label={`Estimated mileage deduction at $${IRS_MILEAGE_RATE_2025.toFixed(2)}/mile (IRS 2025 rate)`}
+        big={fmt(deduction)}
+        stats={[{ v: `${totalMiles.toLocaleString()} mi`, k: "Total Business Miles" }]}
+      />
+      <button className="btn gold mt-2" onClick={pushToScheduleC}>
+        Push total miles into Schedule C →
+      </button>
+
+      <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+        This tracks miles you tell it about — it doesn&apos;t read GPS or auto-detect trips yet. Entries live only
+        in this browser for now, and pushing to Schedule C replaces its mileage field with this total (its other
+        fields are untouched).
+      </p>
+    </Card>
+  );
+}
