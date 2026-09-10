@@ -279,3 +279,60 @@ export function InvestmentFund() {
           { v: `${holdingTotals.totalGL >= 0 ? "+" : ""}${fmt(holdingTotals.totalGL)}`, k: "Total Gain/Loss" },
         ]}
       />
+
+      
+      <h3 className="text-lg">Growth Projector</h3>
+      <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
+        This doesn&apos;t touch your holdings above — it&apos;s a separate &quot;what if&quot; calculator for
+        planning ahead.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <NumberField label="Starting amount" value={projInput.start} onChange={(v) => setProj("start", v)} />
+        <NumberField label="Monthly contribution" value={projInput.monthly} onChange={(v) => setProj("monthly", v)} />
+        <NumberField
+          label="Expected annual return (%)"
+          value={projInput.ratePct}
+          onChange={(v) => setProj("ratePct", v)}
+          step={0.1}
+        />
+      </div>
+      <NumberField label="Years to grow" value={projInput.years} onChange={(v) => setProj("years", v)} />
+
+      <ResultBox
+        label={`Projected value after ${projInput.years} year${projInput.years === 1 ? "" : "s"}`}
+        big={fmt(projection.fv)}
+        stats={[
+          { v: fmt(projection.totalContributed), k: "Total Contributed" },
+          { v: fmt(projection.totalGrowth), k: "Growth From Returns" },
+        ]}
+      />
+      <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+        The projector assumes a constant monthly-compounded return, which real markets never deliver smoothly —
+        it&apos;s for illustrating the power of consistency and time, not a guarantee. Past performance never
+        guarantees future results.
+      </p>
+
+      <h3 className="text-lg">Retirement Contribution Limits — SEP-IRA vs. Solo 401(k)</h3>
+      <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
+        Business owners get two powerful self-employed retirement options, each with very different contribution
+        room. Enter your numbers to see your 2025 limits side by side.
+      </p>
+      <div className="mentor">
+        <div>
+          <span className="eyebrow">Mentor&apos;s Note</span>
+          The Bhagavad Gita speaks of storing up for what&apos;s ahead without attachment to the outcome — a
+          retirement account is that discipline in financial form.
+        </div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <NumberField
+          label="Net self-employment profit this year"
+          value={retInput.profit}
+          onChange={(v) => setRet("profit", v)}
+        />
+        <NumberField
+          label="Your age (for catch-up eligibility)"
+          value={retInput.age}
+          onChange={(v) => setRet("age", v)}
+        />
+      </div>
