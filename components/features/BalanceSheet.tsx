@@ -111,7 +111,8 @@ export function BalanceSheet() {
           )}
         </div>
       </div>
-            <div className="grid gap-6 sm:grid-cols-2">
+
+      <div className="grid gap-6 sm:grid-cols-2">
         <div>
           <h3 className="text-lg">Assets</h3>
           <div className="flex flex-col gap-3">
@@ -221,113 +222,108 @@ export function BalanceSheet() {
             <td className="num">{fmt(totals.totalAssets)}</td>
           </tr>
         </tfoot>
-              <div className="grid gap-6 sm:grid-cols-2">
-        <div>
-          <h3 className="text-lg">Assets</h3>
-          <div className="flex flex-col gap-3">
-            <NumberField label="Cash & bank balances" value={state.cash} onChange={(v) => set("cash", v)} />
-            <NumberField
-              label={nonprofit ? "Pledges / grants receivable" : "Accounts receivable (owed to you)"}
-              value={state.ar}
-              onChange={(v) => set("ar", v)}
-            />
-            <NumberField label="Inventory" value={state.inv} onChange={(v) => set("inv", v)} />
-            <NumberField label="Equipment & vehicles" value={state.equip} onChange={(v) => set("equip", v)} />
-            <NumberField label="Property / real estate" value={state.property} onChange={(v) => set("property", v)} />
-            <NumberField label="Other assets" value={state.otherAsset} onChange={(v) => set("otherAsset", v)} />
-          </div>
-        </div>
-        <div>
-          <h3 className="text-lg">Liabilities</h3>
-          <div className="flex flex-col gap-3">
-            <NumberField label="Accounts payable (you owe)" value={state.ap} onChange={(v) => set("ap", v)} />
-            <NumberField label="Credit card balances" value={state.cc} onChange={(v) => set("cc", v)} />
-            <NumberField
-              label="Short-term loans (due < 1 yr)"
-              value={state.stloan}
-              onChange={(v) => set("stloan", v)}
-            />
-            <NumberField
-              label="Long-term loans / mortgage"
-              value={state.ltloan}
-              onChange={(v) => set("ltloan", v)}
-            />
-            <NumberField label="Other liabilities" value={state.otherLiab} onChange={(v) => set("otherLiab", v)} />
-          </div>
-          <h3 className="text-lg mt-4">{bottomLabel}</h3>
-          <div className="flex flex-col gap-3">
-            {nonprofit ? (
-              <>
-                <NumberField
-                  label="Net assets without donor restrictions"
-                  value={state.netWithoutRestriction}
-                  onChange={(v) => set("netWithoutRestriction", v)}
-                />
-                <NumberField
-                  label="Net assets with donor restrictions"
-                  value={state.netWithRestriction}
-                  onChange={(v) => set("netWithRestriction", v)}
-                />
-              </>
-            ) : (
-              <>
-                <NumberField
-                  label="Owner contributions (capital put in)"
-                  value={state.contrib}
-                  onChange={(v) => set("contrib", v)}
-                />
-                <NumberField
-                  label="Retained earnings (profit kept in business)"
-                  value={state.retained}
-                  onChange={(v) => set("retained", v)}
-                />
-                <NumberField
-                  label="Owner draws (money taken out)"
-                  value={state.draws}
-                  onChange={(v) => set("draws", v)}
-                />
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <table>
         <thead>
           <tr>
-            <th>Assets</th>
+            <th>Liabilities</th>
             <th className="num"></th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Cash & bank balances</td>
-            <td className="num">{fmt(state.cash)}</td>
+            <td>Accounts payable</td>
+            <td className="num">{fmt(state.ap)}</td>
           </tr>
           <tr>
-            <td>{nonprofit ? "Pledges / grants receivable" : "Accounts receivable"}</td>
-            <td className="num">{fmt(state.ar)}</td>
+            <td>Credit card balances</td>
+            <td className="num">{fmt(state.cc)}</td>
           </tr>
           <tr>
-            <td>Inventory</td>
-            <td className="num">{fmt(state.inv)}</td>
+            <td>Short-term loans</td>
+            <td className="num">{fmt(state.stloan)}</td>
           </tr>
           <tr>
-            <td>Equipment & vehicles</td>
-            <td className="num">{fmt(state.equip)}</td>
+            <td>Long-term loans / mortgage</td>
+            <td className="num">{fmt(state.ltloan)}</td>
           </tr>
           <tr>
-            <td>Property / real estate</td>
-            <td className="num">{fmt(state.property)}</td>
-          </tr>
-          <tr>
-            <td>Other assets</td>
-            <td className="num">{fmt(state.otherAsset)}</td>
+            <td>Other liabilities</td>
+            <td className="num">{fmt(state.otherLiab)}</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
-            <td>Total Assets</td>
-            <td className="num">{fmt(totals.totalAssets)}</td>
+            <td>Total Liabilities</td>
+            <td className="num">{fmt(totals.totalLiabilities)}</td>
           </tr>
         </tfoot>
+        <thead>
+          <tr>
+            <th>{bottomLabel}</th>
+            <th className="num"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {nonprofit ? (
+            <>
+              <tr>
+                <td>Net assets without donor restrictions</td>
+                <td className="num">{fmt(state.netWithoutRestriction)}</td>
+              </tr>
+              <tr>
+                <td>Net assets with donor restrictions</td>
+                <td className="num">{fmt(state.netWithRestriction)}</td>
+              </tr>
+            </>
+          ) : (
+            <>
+              <tr>
+                <td>Owner contributions</td>
+                <td className="num">{fmt(state.contrib)}</td>
+              </tr>
+              <tr>
+                <td>Retained earnings</td>
+                <td className="num">{fmt(state.retained)}</td>
+              </tr>
+              <tr>
+                <td>Owner draws</td>
+                <td className="num">-{fmt(state.draws)}</td>
+              </tr>
+            </>
+          )}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Total {bottomLabel}</td>
+            <td className="num">{fmt(totals.totalEquity)}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div
+        className="result-box mt-4"
+        style={{ background: totals.balanced ? "var(--status-good-bg)" : "var(--status-critical-bg)" }}
+      >
+        <div className="label" style={{ color: totals.balanced ? "var(--status-good)" : "var(--status-critical)" }}>
+          {totals.balanced ? `✓ Balanced — Assets = Liabilities + ${bottomLabel}` : "⚠ Not balanced yet"}
+        </div>
+        <div className="big" style={{ color: totals.balanced ? "var(--status-good)" : "var(--status-critical)" }}>
+          {fmt(totals.totalAssets)} {totals.balanced ? "=" : "≠"} {fmt(totals.totalLiabEquity)}
+        </div>
+        {!totals.balanced && (
+          <p className="mt-2 text-sm" style={{ color: "var(--ink-soft)" }}>
+            Difference of {fmt(Math.abs(totals.diff))} —{" "}
+            {totals.diff > 0
+              ? `you have assets not yet accounted for in liabilities or ${bottomLabel.toLowerCase()} (often means ${nonprofit ? "net assets without donor restrictions" : "retained earnings"} should be higher).`
+              : `your liabilities + ${bottomLabel.toLowerCase()} exceed assets (check for a data entry error, or ${bottomLabel.toLowerCase()} should be lower).`}
+          </p>
+        )}
+      </div>
+
+      <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+        {nonprofit
+          ? "This is a simplified single-period snapshot for demo and educational purposes. A full Statement of Financial Position for a Form 990 filing or audit should tie back to your bookkeeping ledger and be reviewed by a nonprofit accounting professional."
+          : "This is a simplified single-period snapshot for demo and educational purposes. A full balance sheet for filing or audit purposes should tie back to your bookkeeping ledger (QuickBooks, etc.) and be reviewed by a professional."}
+      </p>
+    </Card>
+  );
+}
