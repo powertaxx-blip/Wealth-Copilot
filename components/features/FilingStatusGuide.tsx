@@ -130,3 +130,136 @@ export function FilingStatusGuide() {
           </p>
         </RefCard>
       </div>
+      
+      <h3 className="text-lg mt-2">Businesses &amp; Corporations</h3>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <RefCard title="Sole Proprietor / Single-Member LLC">
+          <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
+            No separate business return — reported on your personal Form 1040 using Schedule C (profit/loss) and
+            Schedule SE (self-employment tax).
+          </p>
+          <p className="text-sm">
+            <b>You&apos;ll need:</b> Total business income, itemized expenses by category, mileage log if claiming
+            vehicle use, home office square footage if applicable, any 1099-NEC/1099-K received.
+          </p>
+        </RefCard>
+        <RefCard title="Partnership">
+          <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
+            Two or more owners. The business files an informational return; each partner gets a Schedule K-1
+            showing their share, which flows to their personal return.
+          </p>
+          <p className="text-sm">
+            <b>You&apos;ll need:</b> Form 1065, partnership agreement, each partner&apos;s ownership %, K-1s issued
+            to every partner. Due March 15.
+          </p>
+        </RefCard>
+        <RefCard title="S-Corporation">
+          <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
+            Pass-through like a partnership, but owners who work in the business must pay themselves a
+            &quot;reasonable salary&quot; via payroll before taking distributions.
+          </p>
+          <p className="text-sm">
+            <b>You&apos;ll need:</b> Form 1120-S, K-1s for each shareholder, payroll records (W-2 for
+            owner-employees), Form 2553 election on file with the IRS. Due March 15.
+          </p>
+        </RefCard>
+        <RefCard title="C-Corporation">
+          <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
+            A separate taxable entity — the corporation pays its own flat 21% federal tax, and owners are taxed
+            again on any dividends they receive (&quot;double taxation&quot;).
+          </p>
+          <p className="text-sm">
+            <b>You&apos;ll need:</b> Form 1120, corporate financial statements (balance sheet + income statement),
+            board meeting minutes/resolutions, EIN. Due April 15 (calendar year).
+          </p>
+        </RefCard>
+      </div>
+      <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+        Deadlines shown are typical federal due dates for tax year 2025 returns filed in 2026 and assume a
+        calendar-year business; extensions and exceptions apply. Confirm exact dates on IRS.gov each year, since
+        weekends/holidays shift them.
+      </p>
+
+      <h3 className="text-lg mt-2">S-Corp vs. Sole Prop: What Would You Actually Save?</h3>
+      <p className="text-sm max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>
+        The most common reason a profitable sole proprietor elects S-Corp status is self-employment tax savings.
+        As a sole prop, you pay 15.3% SE tax on nearly all your net profit. As an S-Corp, you only pay FICA on the
+        &quot;reasonable salary&quot; you pay yourself — profit taken as a distribution above that salary escapes
+        SE tax entirely. Run your own numbers below.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <NumberField label="Expected net business profit this year" value={state.profit} onChange={(v) => set("profit", v)} />
+        <NumberField
+          label="Reasonable salary you'd pay yourself (S-Corp)"
+          value={state.salary}
+          onChange={(v) => set("salary", v)}
+        />
+        <NumberField
+          label="Extra S-Corp costs (payroll service, extra accounting, tax prep)"
+          value={state.costs}
+          onChange={(v) => set("costs", v)}
+        />
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Structure</th>
+            <th className="num">Payroll / SE Tax</th>
+            <th className="num">Distribution (no SE tax)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sole Proprietor</td>
+            <td className="num">{fmt(r.soleProp.seTax)}</td>
+            <td className="num">{fmt(0)}</td>
+          </tr>
+          <tr>
+            <td>S-Corp (salary {fmt(r.salary)})</td>
+            <td className="num">{fmt(r.scorpPayrollTax)}</td>
+            <td className="num">{fmt(r.distribution)}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Gross tax savings from S-Corp election</td>
+            <td className="num" colSpan={2}>
+              {fmt(r.grossSavings)}
+            </td>
+          </tr>
+          <tr>
+            <td>Less: extra S-Corp running costs</td>
+            <td className="num" colSpan={2}>
+              -{fmt(state.costs)}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <b>Net savings (or cost) vs. sole prop</b>
+            </td>
+            <td className="num" colSpan={2}>
+              <b>{fmt(r.netSavings)}</b>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div className="result-box mt-4">
+        <div className="label">Bottom line</div>
+        <div className="mt-2">
+          <StatusPill tone={r.tone}>{r.label}</StatusPill>
+        </div>
+      </div>
+
+      <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+        This compares self-employment/FICA tax only — it does not model income tax differences (usually similar
+        either way since profit is taxed once as personal income regardless of entity), the Qualified Business
+        Income deduction interaction, or state-level entity fees. &quot;Reasonable salary&quot; must reflect what a
+        similar role would pay in the open market — the IRS actively audits S-Corps that pay artificially low
+        salaries specifically to dodge payroll tax. Talk to a tax professional before making the election (Form
+        2553).
+      </p>
+    </Card>
+  );
+}
