@@ -16,13 +16,14 @@ export default function HomePage() {
       </div>
 
       <div className="card">
-        <h3 className="text-lg">Ten panels are fully live in this React build</h3>
+        <h3 className="text-lg">Twelve panels are fully live in this React build</h3>
         <p className="mt-2 text-sm" style={{ color: "var(--ink-soft)" }}>
           The Tax Estimator now includes an AI Insight panel and a full Term Dictionary alongside the core
           calculator, Business Expenses and Mileage Tracker both push straight into a real Schedule C builder,
-          Invoices generates a real printable invoice, and Balance Sheet, Emergency Fund, and Investment Fund round
-          out the full financial picture. Every other feature is scaffolded with a real URL and route, ported from
-          the original HTML prototype in order — see <code>MIGRATION.md</code> for the plan.
+          Invoices generates a real printable invoice, Balance Sheet, Emergency Fund, and Investment Fund round out
+          the full financial picture, and the Filing Status Guide and FAQ give you a searchable reference library.
+          Every other feature is scaffolded with a real URL and route, ported from the original HTML prototype in
+          order — see <code>MIGRATION.md</code> for the plan.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link href="/estimator" className="btn gold">
@@ -48,6 +49,12 @@ export default function HomePage() {
           </Link>
           <Link href="/investment" className="btn gold">
             💹 Investment Fund
+          </Link>
+          <Link href="/filing" className="btn gold">
+            📋 Filing Status Guide
+          </Link>
+          <Link href="/faq" className="btn gold">
+            ❓ FAQ
           </Link>
           <Link href="/breakeven" className="btn gold">
             📈 Break-Even &amp; Pricing
