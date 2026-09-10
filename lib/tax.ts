@@ -54,7 +54,7 @@ export const CTC_PHASEOUT_START: Record<FilingStatus, number> = {
  *  MFS filers are generally ineligible for EITC (except rare
  *  separated-spouse exceptions), so MFS is excluded and handled as a
  *  special case in calcEITC(). */
-const EITC_TABLE: Record
+const EITC_TABLE: Record<
   number,
   { phaseInRate: number; maxCredit: number; phaseoutBegin: Partial<Record<FilingStatus, number>>; phaseoutRate: number }
 > = {
