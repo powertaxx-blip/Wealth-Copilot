@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { NumberField, SelectField, TextField } from "@/components/ui/Field";
 import { ResultBox, StatusPill } from "@/components/ui/ResultBox";
 import { fmt } from "@/lib/format";
+import { useOrgType } from "@/lib/orgType";
 import { useLocalStorageState } from "@/lib/useLocalStorageState";
 
 /**
@@ -14,6 +15,12 @@ import { useLocalStorageState } from "@/lib/useLocalStorageState";
  * styled <div>s using the app's existing --status-good/warning/critical
  * tokens, standing in for the original's CSS gauge classes (which this
  * React build never carried over) without needing new global CSS.
+ *
+ * Nonprofit Mode (lib/orgType.ts) relabels this as an "Operating
+ * Reserve" — the term a nonprofit's board and funders actually use for
+ * the same 3-6-months-of-expenses cushion, per National Council of
+ * Nonprofits guidance. The math underneath doesn't change at all, only
+ * the title, copy, and field labels do.
  */
 
 type EmergencyFundState = {
@@ -38,6 +45,8 @@ const initial: EmergencyFundState = {
 };
 
 export function EmergencyFund() {
+  const [orgType] = useOrgType();
+  const nonprofit = orgType === "nonprofit";
   const [state, setState] = useLocalStorageState<EmergencyFundState>("wc.emergency", initial);
   const set = <K extends keyof EmergencyFundState>(key: K, value: EmergencyFundState[K]) =>
     setState((s) => ({ ...s, [key]: value }));
@@ -75,8 +84,12 @@ export function EmergencyFund() {
 
   return (
     <Card
-      title="Emergency Fund Monitor"
-      lede="An emergency fund isn't a savings goal for fun — it's the wall between you and a credit card emergency. Enter your numbers to see exactly how covered you are, and what it takes to close the gap."
+      title={nonprofit ? "Operating Reserve" : "Emergency Fund Monitor"}
+      lede={
+        nonprofit
+          ? "An operating reserve isn't a rainy-day extra — it's what lets the organization keep serving its mission through a slow grant cycle or a late-paying funder. Enter your numbers to see exactly how covered you are, and what it takes to close the gap."
+          : "An emergency fund isn't a savings goal for fun — it's the wall between you and a credit card emergency. Enter your numbers to see exactly how covered you are, and what it takes to close the gap."
+      }
     >
       <div className="mentor">
         <div>
@@ -88,11 +101,15 @@ export function EmergencyFund() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <NumberField
-          label="Monthly essential expenses"
+          label={nonprofit ? "Monthly operating expenses" : "Monthly essential expenses"}
           value={state.expenses}
           onChange={(v) => set("expenses", v)}
         />
-        <NumberField label="Current emergency savings" value={state.savings} onChange={(v) => set("savings", v)} />
+        <NumberField
+          label={nonprofit ? "Current reserve balance" : "Current emergency savings"}
+          value={state.savings}
+          onChange={(v) => set("savings", v)}
+        />
         <SelectField
           label="Target coverage"
           value={state.targetMonths}
@@ -111,8 +128,8 @@ export function EmergencyFund() {
         label="Months of expenses currently covered"
         big={`${r.monthsCovered.toFixed(1)} months`}
         stats={[
-          { v: fmt(r.targetAmount), k: "Target Fund" },
-          { v: fmt(state.savings), k: "Current Savings" },
+          { v: fmt(r.targetAmount), k: "Target Reserve" },
+          { v: fmt(state.savings), k: "Current Balance" },
           { v: fmt(r.gap), k: "Remaining Gap" },
         ]}
       />
@@ -153,10 +170,10 @@ export function EmergencyFund() {
       )}
 
       <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
-        3–6 months is the common rule of thumb for employees; business owners with less predictable income often
-        aim for 6–12 months instead.
+        {nonprofit
+          ? "3–6 months of operating expenses is the range the National Council of Nonprofits points to as a healthy reserve, though boards with less predictable funding (grant-dependent orgs especially) often aim for 6 months or more."
+          : "3–6 months is the common rule of thumb for employees; business owners with less predictable income often aim for 6–12 months instead."}
       </p>
     </Card>
   );
 }
-      
