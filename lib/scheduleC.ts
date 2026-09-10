@@ -81,4 +81,57 @@ export function calcScheduleC(input: ScheduleCInput): ScheduleCResult {
 
   const netProfit = netReceipts - totalExpenses;
   return { netReceipts, carExpense, totalExpenses, netProfit, lineItems };
+} 
+/** Dedicated bridge key — see file header. Plain JSON number, not the full form. */
+export const SCHEDULE_C_NET_PROFIT_KEY = "wc.schedulec.netProfit";
+
+/** Reads whatever net profit Schedule C last computed, or 0 if it's never
+ * been visited / storage is unavailable (private browsing, etc.) — a
+ * missing value should never crash the Tax Estimator, just come back as 0. */
+export function readScheduleCNetProfit(): number {
+  try {
+    const raw = window.localStorage.getItem(SCHEDULE_C_NET_PROFIT_KEY);
+    if (!raw) return 0;
+    const n = JSON.parse(raw);
+    return typeof n === "number" && Number.isFinite(n) ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** The Schedule C form's own localStorage key, exported so Business
+ * Expenses can merge category totals into it directly — the same
+ * cross-panel push the original app did with direct DOM writes, just
+ * to localStorage instead of the DOM since the two panels aren't
+ * mounted at the same time. */
+export const SCHEDULE_C_STORAGE_KEY = "wc.schedulec";
+
+/** Merges category totals (from Business Expenses) into whatever Schedule C
+ * form is already saved, without touching any of its other fields (gross,
+ * mileage, business name, etc.) or categories Business Expenses didn't
+ * touch this time. Falls back to INITIAL_SCHEDULE_C if nothing was saved
+ * yet or the saved value is malformed. */
+export function mergeCategoryTotalsIntoScheduleC(totalsByCategory: Record<string, number>): void {
+  let current: ScheduleCInput = INITIAL_SCHEDULE_C;
+  try {
+    const raw = window.localStorage.getItem(SCHEDULE_C_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && typeof parsed.categoryAmounts === "object") {
+        current = parsed as ScheduleCInput;
+      }
+    }
+  } catch {
+    // fall through to INITIAL_SCHEDULE_C
+  }
+  const merged: ScheduleCInput = {
+    ...INITIAL_SCHEDULE_C,
+    ...current,
+    categoryAmounts: { ...INITIAL_SCHEDULE_C.categoryAmounts, ...current.categoryAmounts, ...totalsByCategory },
+  };
+  try {
+    window.localStorage.setItem(SCHEDULE_C_STORAGE_KEY, JSON.stringify(merged));
+  } catch {
+    // storage unavailable — nothing persists, same silent fallback as everywhere else
+  }
 }
