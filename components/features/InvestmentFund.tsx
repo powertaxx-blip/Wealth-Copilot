@@ -138,3 +138,144 @@ export function InvestmentFund() {
 
     return { adjustedNetEarnings, sepAmount, employeeDeferral, employerShare, soloTotal, combinedCap, winner };
   }, [retInput]);
+
+      
+  const typeKeys = Object.keys(holdingTotals.byType) as HoldingType[];
+
+  return (
+    <Card
+      title="Investment Fund Tracker"
+      lede="Log what you've invested and where, and watch your allocation take shape. Then use the projector below to see what steady contributions could grow into over time."
+    >
+      <div className="mentor">
+        <div>
+          <span className="eyebrow">Mentor&apos;s Note</span>
+          Saving protects what you have; investing is what puts time to work for you. The Upanishads speak of the
+          small seed that holds the whole tree inside it — a modest monthly contribution works the same way, given
+          enough years.
+        </div>
+      </div>
+
+      <h3 className="text-lg">Holdings</h3>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <TextField
+          label="Holding name"
+          value={draft.name}
+          onChange={(v) => setDraft((d) => ({ ...d, name: v }))}
+          placeholder="e.g., Vanguard S&P 500 ETF"
+        />
+        <SelectField
+          label="Type"
+          value={draft.type}
+          onChange={(v) => setDraft((d) => ({ ...d, type: v as HoldingType }))}
+          options={TYPE_OPTIONS}
+        />
+        <NumberField
+          label="Amount contributed"
+          value={draft.contributed}
+          onChange={(v) => {
+            setDraft((d) => ({ ...d, contributed: v }));
+            if (v > 0) setHoldingError(false);
+          }}
+        />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <NumberField
+          label="Current value"
+          value={draft.value}
+          onChange={(v) => {
+            setDraft((d) => ({ ...d, value: v }));
+            if (v > 0) setHoldingError(false);
+          }}
+        />
+        <button className="btn gold self-end" onClick={addHolding}>
+          + Add Holding
+        </button>
+      </div>
+      {holdingError && (
+        <p className="text-sm" style={{ color: "var(--status-critical)" }}>
+          Enter a contributed amount or current value greater than $0.
+        </p>
+      )}
+
+      {holdings.length === 0 ? (
+        <p className="text-sm" style={{ color: "var(--muted)" }}>
+          No holdings logged yet — add your first one above.
+        </p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th className="num">Contributed</th>
+              <th className="num">Current Value</th>
+              <th className="num">Gain/Loss</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {holdings.map((h) => {
+              const gl = h.value - h.contributed;
+              return (
+                <tr key={h.id}>
+                  <td>{h.name}</td>
+                  <td>{TYPE_LABEL[h.type]}</td>
+                  <td className="num">{fmt(h.contributed)}</td>
+                  <td className="num">{fmt(h.value)}</td>
+                  <td className="num" style={{ color: gl >= 0 ? "var(--status-good)" : "var(--status-critical)" }}>
+                    {gl >= 0 ? "+" : ""}
+                    {fmt(gl)}
+                  </td>
+                  <td>
+                    <button className="btn ghost" onClick={() => removeHolding(h.id)}>
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+
+      {typeKeys.length > 0 && (
+        <>
+          <h3 className="text-lg">Allocation</h3>
+          <div className="flex flex-col gap-2 mt-2">
+            {typeKeys.map((t) => {
+              const val = holdingTotals.byType[t] || 0;
+              const pct = holdingTotals.totalValue > 0 ? (val / holdingTotals.totalValue) * 100 : 0;
+              return (
+                <div key={t} className="flex items-center gap-3 text-sm">
+                  <div style={{ width: 150, flexShrink: 0, color: "var(--ink-soft)" }}>{TYPE_LABEL[t]}</div>
+                  <div
+                    style={{
+                      flex: 1,
+                      height: 10,
+                      borderRadius: 999,
+                      background: "var(--line-soft)",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div style={{ height: "100%", width: `${pct}%`, background: TYPE_COLOR[t] }} />
+                  </div>
+                  <div style={{ width: 120, flexShrink: 0, textAlign: "right", color: "var(--ink-soft)" }}>
+                    {fmt(val)} ({pct.toFixed(0)}%)
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      <ResultBox
+        label="Holdings summary"
+        big={`${holdingTotals.totalGL >= 0 ? "+" : ""}${fmt(holdingTotals.totalGL)}`}
+        stats={[
+          { v: fmt(holdingTotals.totalContributed), k: "Total Contributed" },
+          { v: fmt(holdingTotals.totalValue), k: "Total Current Value" },
+          { v: `${holdingTotals.totalGL >= 0 ? "+" : ""}${fmt(holdingTotals.totalGL)}`, k: "Total Gain/Loss" },
+        ]}
+      />
