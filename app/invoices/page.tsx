@@ -1,11 +1,5 @@
-import { ComingNext } from "@/components/ui/ComingNext";
+import { Invoices } from "@/components/features/Invoices";
 
 export default function InvoicesPage() {
-  return (
-    <ComingNext
-      title="Invoices & Accounts Receivable"
-      description="Logs invoices, auto-flags overdue ones against today's date, and totals outstanding vs. collected."
-      oldPanelId="invoices"
-    />
-  );
+  return <Invoices />;
 }
