@@ -251,3 +251,73 @@ export function Invoices() {
           </p>
         </Card>
       </div>
+      
+      {/* Print-only layout — hidden on screen, the only thing visible when
+          printing (see app/globals.css). Always reflects whatever invoice
+          is currently loaded into the form above. */}
+      <div className="invoice-print-area" style={{ padding: 32, color: "#1c1024", fontFamily: "Manrope, sans-serif" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 20 }}>{draft.businessName || "Your Business Name"}</div>
+            <div style={{ fontSize: 13, whiteSpace: "pre-line" }}>{draft.businessDetails}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontWeight: 700, fontSize: 24, letterSpacing: 2 }}>INVOICE</div>
+            <div style={{ fontSize: 13 }}>{draft.invoiceNumber}</div>
+            <div style={{ fontSize: 13 }}>Date: {draft.date}</div>
+            {draft.dueDate && <div style={{ fontSize: 13 }}>Due: {draft.dueDate}</div>}
+          </div>
+        </div>
+
+        <div style={{ marginTop: 24 }}>
+          <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: "#5b4b63" }}>Bill To</div>
+          <div style={{ fontWeight: 700 }}>{draft.clientName || "(no client name)"}</div>
+          <div style={{ fontSize: 13, whiteSpace: "pre-line" }}>{draft.clientDetails}</div>
+        </div>
+
+        <table style={{ width: "100%", marginTop: 24, borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ borderBottom: "2px solid #1c1024" }}>
+              <th style={{ textAlign: "left", padding: "6px 4px" }}>Description</th>
+              <th style={{ textAlign: "right", padding: "6px 4px" }}>Qty</th>
+              <th style={{ textAlign: "right", padding: "6px 4px" }}>Rate</th>
+              <th style={{ textAlign: "right", padding: "6px 4px" }}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {draft.lineItems.map((li) => (
+              <tr key={li.id} style={{ borderBottom: "1px solid #ddd" }}>
+                <td style={{ padding: "6px 4px" }}>{li.description || "—"}</td>
+                <td style={{ textAlign: "right", padding: "6px 4px" }}>{li.qty}</td>
+                <td style={{ textAlign: "right", padding: "6px 4px" }}>{fmt(li.rate)}</td>
+                <td style={{ textAlign: "right", padding: "6px 4px" }}>{fmt(li.qty * li.rate)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div style={{ marginTop: 16, marginLeft: "auto", width: 240 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
+            <span>Subtotal</span>
+            <span>{fmt(totals.subtotal)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
+            <span>Tax ({draft.taxRatePct}%)</span>
+            <span>{fmt(totals.tax)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 700, marginTop: 6, borderTop: "2px solid #1c1024", paddingTop: 6 }}>
+            <span>Total Due</span>
+            <span>{fmt(totals.total)}</span>
+          </div>
+        </div>
+
+        {draft.notes && (
+          <div style={{ marginTop: 24, fontSize: 13, color: "#5b4b63" }}>
+            <div style={{ textTransform: "uppercase", fontSize: 11, letterSpacing: 1 }}>Notes</div>
+            {draft.notes}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
