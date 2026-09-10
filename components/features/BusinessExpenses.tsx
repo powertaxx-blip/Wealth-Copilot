@@ -93,3 +93,112 @@ export function BusinessExpenses() {
           expenses do the same; a logged receipt today beats a shoebox in April.
         </div>
       </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <TextField
+          label="Date"
+          value={draft.date}
+          onChange={(v) => setDraft((d) => ({ ...d, date: v }))}
+          placeholder="e.g., 2026-03-14"
+        />
+        <TextField
+          label="Description / vendor"
+          value={draft.desc}
+          onChange={(v) => setDraft((d) => ({ ...d, desc: v }))}
+          placeholder="e.g., Staples — printer paper"
+        />
+        <SelectField
+          label="Category"
+          value={draft.category}
+          onChange={(v) => setDraft((d) => ({ ...d, category: v }))}
+          options={CATEGORY_OPTIONS}
+        />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <NumberField
+          label="Amount"
+          value={draft.amount}
+          onChange={(v) => {
+            setDraft((d) => ({ ...d, amount: v }));
+            if (v > 0) setAmountError(false);
+          }}
+        />
+        <button className="btn gold self-end" onClick={addExpense}>
+          + Add Expense
+        </button>
+      </div>
+      {amountError && (
+        <p className="text-sm" style={{ color: "var(--status-critical)" }}>
+          Enter an amount greater than $0 before adding the expense.
+        </p>
+      )}
+
+      <h3 className="text-lg">Expense Log</h3>
+      {expenses.length === 0 ? (
+        <p className="text-sm" style={{ color: "var(--muted)" }}>
+          No expenses logged yet — add your first one above.
+        </p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th className="num">Amount</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {expenses.map((e) => (
+              <tr key={e.id}>
+                <td>{e.date}</td>
+                <td>{e.desc}</td>
+                <td>{labelFor(e.category)}</td>
+                <td className="num">{fmt(e.amount)}</td>
+                <td>
+                  <button className="btn ghost" onClick={() => removeExpense(e.id)}>
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <h3 className="text-lg">Totals by Category</h3>
+      {Object.keys(totalsByCategory).length === 0 ? (
+        <p className="text-sm" style={{ color: "var(--muted)" }}>
+          Category totals will build here as you log expenses.
+        </p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th className="num">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(totalsByCategory).map(([cat, total]) => (
+              <tr key={cat}>
+                <td>{labelFor(cat)}</td>
+                <td className="num">{fmt(total)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <ResultBox label="Total logged business expenses" big={fmt(grandTotal)} />
+      <button className="btn gold mt-2" onClick={pushToScheduleC}>
+        Push these totals into Schedule C →
+      </button>
+
+      <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+        Entries here live only in this browser for now — nothing is saved to an account or synced yet. A future
+        version would sync this to a connected business bank account automatically.
+      </p>
+    </Card>
+  );
+} 
