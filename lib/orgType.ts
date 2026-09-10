@@ -10,15 +10,21 @@ import { useEffect, useState } from "react";
  * paperwork entirely. See Settings for the plain-language explanation
  * shown next to this toggle.
  *
- * Modeled the same way ThemeToggle reads/writes `wc.theme` — a plain
- * localStorage string, read once on mount (each page is its own route,
- * so a fresh read on mount is enough, same assumption every other panel
- * here already makes) rather than a React Context, since nothing needs
- * this to update live across two panels open at once.
+ * Reads/writes the same plain localStorage string ThemeToggle uses for
+ * `wc.theme`, but with one addition: TopNav lives in the root layout, so
+ * it mounts once and stays mounted across every client-side route
+ * change — unlike Balance Sheet or Emergency Fund, it never gets a
+ * fresh "read on mount" when Settings changes this value. A same-tab
+ * `wc:orgtype-change` event (the native `storage` event only fires in
+ * *other* tabs, never the tab that made the change) lets every mounted
+ * useOrgType() — including the one inside TopNav — pick up the new
+ * value immediately, without needing a React Context provider wrapped
+ * around the whole app.
  */
 export type OrgType = "standard" | "nonprofit";
 
 const ORG_TYPE_KEY = "wc.orgType";
+const ORG_TYPE_EVENT = "wc:orgtype-change";
 
 export function readOrgType(): OrgType {
   if (typeof window === "undefined") return "standard";
@@ -34,6 +40,11 @@ export function useOrgType(): [OrgType, (next: OrgType) => void] {
 
   useEffect(() => {
     setOrgTypeState(readOrgType());
+    function onChange() {
+      setOrgTypeState(readOrgType());
+    }
+    window.addEventListener(ORG_TYPE_EVENT, onChange);
+    return () => window.removeEventListener(ORG_TYPE_EVENT, onChange);
   }, []);
 
   function setOrgType(next: OrgType) {
@@ -43,6 +54,7 @@ export function useOrgType(): [OrgType, (next: OrgType) => void] {
     } catch {
       // storage unavailable — choice just won't persist across reloads
     }
+    window.dispatchEvent(new Event(ORG_TYPE_EVENT));
   }
 
   return [orgType, setOrgType];
