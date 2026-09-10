@@ -114,4 +114,56 @@ export function sanitizeExplainRequest(raw: unknown): ExplainRequest {
   result.isRefund = r.isRefund;
 
   return { status, kids, state, result: result as unknown as EstimatorResult };
+} 
+function stripUnsafeMarkup(s: string): string {
+  // Defense in depth: React already escapes text content, but this feature's
+  // output could plausibly be reused somewhere that isn't React one day
+  // (an email, a PDF, a raw API consumer) — so tags and script-ish protocol
+  // strings are stripped at the source, not left for a future renderer to
+  // get right.
+  return s
+    .replace(/<[^>]*>/g, "")
+    .replace(/javascript:/gi, "")
+    .replace(/on\w+\s*=/gi, "");
+}
+
+function truncate(s: string, max: number): string {
+  return s.length > max ? s.slice(0, max - 1).trimEnd() + "…" : s;
+}
+
+/**
+ * Output sanitization. The model is instructed (see buildPrompt) to return
+ * only JSON matching ExplainResponse — but "instructed to" is not the same
+ * as "guaranteed to," so nothing from the model reaches the UI without
+ * passing through here first: a strict shape check, then per-field
+ * cleanup (strip markup, enforce length caps, cap tip count).
+ */
+export function sanitizeExplainResponse(raw: unknown): ExplainResponse {
+  let parsed: unknown = raw;
+  if (typeof raw === "string") {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      throw new OutputValidationError("Model response was not valid JSON");
+    }
+  }
+  if (typeof parsed !== "object" || parsed === null) {
+    throw new OutputValidationError("Model response must be a JSON object");
+  }
+  const body = parsed as Record<string, unknown>;
+
+  if (typeof body.summary !== "string" || body.summary.trim().length === 0) {
+    throw new OutputValidationError('Model response missing a non-empty "summary" string');
+  }
+  if (!Array.isArray(body.tips) || !body.tips.every((t) => typeof t === "string")) {
+    throw new OutputValidationError('Model response missing a "tips" array of strings');
+  }
+
+  const summary = truncate(stripUnsafeMarkup(body.summary), MAX_SUMMARY_CHARS);
+  const tips = (body.tips as string[])
+    .slice(0, MAX_TIPS)
+    .map((t) => truncate(stripUnsafeMarkup(t), MAX_TIP_CHARS))
+    .filter((t) => t.length > 0);
+
+  return { summary, tips };
 }
