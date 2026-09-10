@@ -1,11 +1,5 @@
-import { ComingNext } from "@/components/ui/ComingNext";
+import { BalanceSheet } from "@/components/features/BalanceSheet";
 
 export default function BalancePage() {
-  return (
-    <ComingNext
-      title="Balance Sheet Builder"
-      description="Assets, liabilities, and equity, with a live check that everything actually balances."
-      oldPanelId="balance"
-    />
-  );
+  return <BalanceSheet />;
 }
