@@ -64,4 +64,116 @@ ${r.isRefund ? "Estimated Refund" : "Estimated Total Tax Owed"}: ${fmt(Math.abs(
 Effective Tax Rate: ${r.effectiveRate.toFixed(1)}%
 Estimated Take-Home: ${fmt(r.takeHome)}
 ${r.quarterlyPayment > 0 ? `Quarterly Estimated Payment: ${fmt(r.quarterlyPayment)} due Apr 15 / Jun 15 / Sep 15 / Jan 15` : "No quarterly payments owed."}`;
+} 
+const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 529]);
+
+export type FetchLike = typeof fetch;
+
+/**
+ * Retry logic: exponential backoff with jitter, capped at maxAttempts.
+ * Only retries on statuses that mean "try again later" (rate limit,
+ * server-side/overload errors) or on a network-level failure (fetch
+ * itself throwing). A 400/401/403 means something is wrong with the
+ * request or credentials — retrying won't fix that, so those fail fast
+ * instead of burning three attempts on a guaranteed-to-fail call.
+ */
+export async function callAnthropicWithRetry(
+  userPrompt: string,
+  opts: { fetchImpl?: FetchLike; maxAttempts?: number; baseDelayMs?: number; apiKey?: string } = {}
+): Promise<string> {
+  const fetchImpl = opts.fetchImpl ?? fetch;
+  const maxAttempts = opts.maxAttempts ?? 3;
+  const baseDelayMs = opts.baseDelayMs ?? 400;
+  const apiKey = opts.apiKey ?? process.env.ANTHROPIC_API_KEY;
+
+  if (!apiKey) {
+    throw new AIProviderError("AI insight is not configured (missing ANTHROPIC_API_KEY)");
+  }
+
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    let res: Response;
+    try {
+      res = await fetchImpl(API_URL, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: 400,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: "user", content: userPrompt }],
+        }),
+      });
+    } catch (networkErr) {
+      // fetch() itself threw — a real network failure (DNS, timeout,
+      // connection reset). Always retryable: nothing about the request
+      // was rejected, the request never arrived at all.
+      lastError = networkErr;
+      if (attempt < maxAttempts) {
+        await sleep(backoffDelay(attempt, baseDelayMs));
+        continue;
+      }
+      break;
+    }
+
+    if (res.ok) {
+      const data = await res.json();
+      const text = data?.content?.[0]?.text;
+      if (typeof text !== "string") {
+        // The provider responded successfully but not in the shape this
+        // code expects. Not a transient failure — retrying the identical
+        // request would produce the identical shape — so fail immediately.
+        throw new AIProviderError("Unexpected response shape from AI provider");
+      }
+      return text;
+    }
+
+    if (RETRYABLE_STATUS.has(res.status)) {
+      lastError = new AIProviderError(`AI provider returned ${res.status}`);
+      if (attempt < maxAttempts) {
+        await sleep(backoffDelay(attempt, baseDelayMs));
+        continue;
+      }
+      break;
+    }
+
+    // Non-retryable status (400 bad request, 401/403 bad credentials,
+    // 404, etc.) — retrying an identical request would fail identically,
+    // so fail fast instead of burning the remaining attempts. Never
+    // surface the raw response body: it could contain provider-internal
+    // detail (or in a misconfigured deployment, an error message that
+    // echoes the request) that shouldn't reach a client.
+    throw new AIProviderError(`AI provider rejected the request (status ${res.status})`);
+  }
+
+  throw new AIProviderError(
+    `AI provider unavailable after ${maxAttempts} attempts: ${lastError instanceof Error ? lastError.message : String(lastError)}`
+  );
+}
+
+function backoffDelay(attempt: number, baseDelayMs: number): number {
+  const exp = baseDelayMs * 2 ** (attempt - 1);
+  const jitter = Math.random() * baseDelayMs;
+  return exp + jitter;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Top-level entry point: sanitized request in, sanitized response out.
+ * Everything between those two boundaries (prompt construction, the
+ * network call, retries) is this file's job; everything on either side
+ * of the boundary is schema.ts's job. Neither file trusts the other's
+ * input without checking it.
+ */
+export async function explainEstimate(req: ExplainRequest, opts: Parameters<typeof callAnthropicWithRetry>[1] = {}): Promise<ExplainResponse> {
+  const userPrompt = buildUserPrompt(req);
+  const rawText = await callAnthropicWithRetry(userPrompt, opts);
+  return sanitizeExplainResponse(rawText);
 }
