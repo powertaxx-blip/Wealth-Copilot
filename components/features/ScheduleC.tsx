@@ -93,4 +93,93 @@ export function ScheduleC() {
             onChange={(v) => setCategory(line.id, v)}
           />
         ))}
+      </div> 
+      <h3 className="text-lg">Vehicle / Mileage (Line 9 helper)</h3>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <NumberField label="Business miles driven" value={state.miles} onChange={(v) => set("miles", v)} />
+        <NumberField
+          label="IRS standard mileage rate (2025)"
+          value={state.mileRate}
+          onChange={(v) => set("mileRate", v)}
+          step={0.01}
+        />
+        <div className="field">
+          <label>Car &amp; truck expense (auto-computed)</label>
+          <input type="text" value={fmt(result.carExpense)} disabled />
+        </div>
       </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Part I — Income</th>
+            <th className="num"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Gross receipts</td>
+            <td className="num">{fmt(state.gross)}</td>
+          </tr>
+          <tr>
+            <td>Less: returns &amp; allowances</td>
+            <td className="num">-{fmt(state.returns)}</td>
+          </tr>
+          <tr>
+            <td>
+              <b>Gross income (Line 7)</b>
+            </td>
+            <td className="num">
+              <b>{fmt(result.netReceipts)}</b>
+            </td>
+          </tr>
+        </tbody>
+        <thead>
+          <tr>
+            <th>Part II — Expenses</th>
+            <th className="num"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {result.lineItems.filter((li) => li.val !== 0).length === 0 ? (
+            <tr>
+              <td colSpan={2} style={{ color: "var(--muted)" }}>
+                Enter expenses above to see them itemized here.
+              </td>
+            </tr>
+          ) : (
+            result.lineItems
+              .filter((li) => li.val !== 0)
+              .map((li) => (
+                <tr key={li.label}>
+                  <td>{li.label}</td>
+                  <td className="num">{fmt(li.val)}</td>
+                </tr>
+              ))
+          )}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Total expenses (Line 28)</td>
+            <td className="num">{fmt(result.totalExpenses)}</td>
+          </tr>
+          <tr>
+            <td>Net profit or (loss) (Line 31)</td>
+            <td className="num">{fmt(result.netProfit)}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <ResultBox label="Net profit flowing to your Form 1040 & Schedule SE" big={fmt(result.netProfit)} />
+      <button className="btn gold mt-2" onClick={sendToEstimator}>
+        Send this net profit to the Tax Estimator →
+      </button>
+
+      <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+        This builder covers the core lines most small business owners use. It does not include depreciation (Form
+        4562), cost of goods sold detail, or the home-office actual-expense method — those need a closer look with a
+        tax professional.
+      </p>
+    </Card>
+  );
+}
