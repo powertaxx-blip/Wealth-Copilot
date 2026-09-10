@@ -16,15 +16,22 @@ export default function HomePage() {
       </div>
 
       <div className="card">
-        <h3 className="text-lg">Three panels are fully live in this React build</h3>
+        <h3 className="text-lg">Five panels are fully live in this React build</h3>
         <p className="mt-2 text-sm" style={{ color: "var(--ink-soft)" }}>
           The Tax Estimator now includes an AI Insight panel and a full Term Dictionary alongside the core
-          calculator. Every other feature is scaffolded with a real URL and route, ported from the original HTML
-          prototype in order — see <code>MIGRATION.md</code> for the plan.
+          calculator, and Business Expenses now pushes straight into a real Schedule C builder. Every other feature
+          is scaffolded with a real URL and route, ported from the original HTML prototype in order — see{" "}
+          <code>MIGRATION.md</code> for the plan.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link href="/estimator" className="btn gold">
             🧮 Tax Estimator + AI Insight
+          </Link>
+          <Link href="/bizexpenses" className="btn gold">
+            💼 Business Expenses
+          </Link>
+          <Link href="/schedulec" className="btn gold">
+            🧾 Schedule C
           </Link>
           <Link href="/breakeven" className="btn gold">
             📈 Break-Even &amp; Pricing
