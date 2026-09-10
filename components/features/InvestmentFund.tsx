@@ -336,3 +336,56 @@ export function InvestmentFund() {
           onChange={(v) => setRet("age", v)}
         />
       </div>
+
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Account</th>
+            <th className="num">Max 2025 Contribution</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>SEP-IRA</td>
+            <td className="num">{fmt(retirement.sepAmount)}</td>
+          </tr>
+          <tr>
+            <td>Solo 401(k) — employee deferral</td>
+            <td className="num">{fmt(retirement.employeeDeferral)}</td>
+          </tr>
+          <tr>
+            <td>Solo 401(k) — employer profit-sharing</td>
+            <td className="num">{fmt(retirement.employerShare)}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>
+              <b>Solo 401(k) total</b>
+            </td>
+            <td className="num">
+              <b>{fmt(retirement.soloTotal)}</b>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <ResultBox
+        label="More contribution room at this profit level"
+        big={retirement.winner}
+        stats={[
+          { v: fmt(retirement.adjustedNetEarnings), k: "Adjusted Net SE Earnings" },
+          { v: fmt(retirement.combinedCap), k: "Your Age-Based Cap" },
+        ]}
+      />
+      <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+        Figures are 2025 IRS limits. SEP-IRA: employer-style contribution up to 25% of compensation, calculated for
+        the self-employed as roughly 20% of net SE earnings after the deduction for half your SE tax, capped at
+        $70,000. Solo 401(k): employee deferral up to $23,500 (plus $7,500 catch-up at 50+, or $11,250 &quot;super
+        catch-up&quot; for ages 60–63 under SECURE 2.0) plus an employer profit-sharing contribution of roughly 20%
+        of net SE earnings, combined cap $70,000 ($77,500 at 50+, $81,250 for ages 60–63).
+      </p>
+    </Card>
+  );
+}
