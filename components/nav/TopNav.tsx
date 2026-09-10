@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useOrgType } from "@/lib/orgType";
 
 type NavItem = { href: string; label: string };
 type NavGroup = { label: string; items: NavItem[] };
 
+// Same four groupings as the original app's tab bar (Overview / Learn /
+// Plan / File) plus a new Account group for Settings, which the old
+// single-file build never had — see MIGRATION.md.
 const NAV: NavGroup[] = [
   {
     label: "Overview",
@@ -47,10 +51,27 @@ const NAV: NavGroup[] = [
     items: [{ href: "/settings", label: "⚙️ Settings" }],
   },
 ];
+
+// Nonprofit Mode swaps these two tab labels to match what the panels
+// themselves are called once toggled — see lib/orgType.ts for why TopNav
+// specifically needs the live same-tab update (it mounts once in the
+// root layout, not fresh per page like most other panels).
+const NONPROFIT_LABEL_OVERRIDES: Record<string, string> = {
+  "/balance": "⚖️ Statement of Financial Position",
+  "/emergency": "🛟 Operating Reserve",
+};
+
 export function TopNav() {
   const pathname = usePathname();
+  const [orgType] = useOrgType();
+  const nonprofit = orgType === "nonprofit";
 
   return (
+    // Fixed --brand-surface/--on-brand/--on-gold tokens, not --navy/--gold's
+    // theme-flipping ones — the header used to invert to a light background
+    // in dark mode while its text stayed hardcoded light, which made the
+    // entire nav bar unreadable for every dark-mode visitor. Caught in the
+    // pre-deploy QA audit. See the token comment in app/globals.css.
     <header style={{ background: "var(--brand-surface)", borderBottom: "1px solid var(--line)" }}>
       <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-6 py-4">
         <div
@@ -80,6 +101,7 @@ export function TopNav() {
             <div className="flex flex-wrap gap-1.5">
               {group.items.map((item) => {
                 const active = pathname === item.href;
+                const label = (nonprofit && NONPROFIT_LABEL_OVERRIDES[item.href]) || item.label;
                 return (
                   <Link
                     key={item.href}
@@ -91,7 +113,7 @@ export function TopNav() {
                       fontWeight: active ? 600 : 400,
                     }}
                   >
-                    {item.label}
+                    {label}
                   </Link>
                 );
               })}
