@@ -211,4 +211,15 @@ export function TaxEstimator() {
             </tbody>
           </table>
           <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>
-            Exact dates shift a day or
+                        Exact dates shift a day or two when the 15th lands on a weekend or holiday — confirm on IRS.gov for the
+            current year. This simply splits your estimate into four even payments; many preparers instead base
+            quarterlies on last year&apos;s actual tax as a safe-harbor floor.
+          </p>
+        </div>
+      )}
+
+      <AIInsightPanel status={state.status} kids={state.kids} usState={state.state} result={r} />
+      <TermDictionary />
+    </Card>
+  );
+}
