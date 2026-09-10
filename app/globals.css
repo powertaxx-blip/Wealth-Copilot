@@ -367,3 +367,31 @@ td {
   border-color: var(--line);
   color: var(--ink-soft);
 }
+
+/* =========================================================
+   PRINT STYLES — used by Invoices' "Print / Save as PDF" button
+   (components/features/Invoices.tsx). window.print() is the whole
+   mechanism: every modern browser's own Print dialog already offers
+   "Save as PDF" as a destination, so no PDF library is needed. On
+   screen, .invoice-print-area stays hidden and the normal editable
+   form is what's visible; when printing, that's flipped — the app
+   chrome and the editable form disappear and only the clean invoice
+   layout prints. */
+.invoice-print-area {
+  display: none;
+}
+
+@media print {
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+  body,
+  main {
+    background: #fff !important;
+  }
+  .invoice-print-area {
+    display: block !important;
+  }
+}
