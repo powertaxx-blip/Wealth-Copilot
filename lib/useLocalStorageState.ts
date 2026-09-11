@@ -12,6 +12,18 @@ import { useEffect, useRef, useState } from "react";
  *
  * Debounced the same way the original did (500ms) so fast typing
  * doesn't hit localStorage on every keystroke.
+ *
+ * Bug found and fixed during the Volunteer Mileage Rate build: the write
+ * effect's cleanup cleared the pending debounce timer on EVERY dependency
+ * change, including a genuine unmount — so a change made less than 500ms
+ * before navigating to another panel (e.g. add a trip, immediately click
+ * a nav link) was silently dropped, never written to localStorage at all.
+ * Caught by a Playwright test that toggled Nonprofit Mode right after
+ * adding a trip and found the trip gone. Fixed with a `latestValue` ref
+ * plus a second, mount-once effect whose cleanup runs only on true
+ * unmount: it flushes the latest value immediately instead of discarding
+ * it, while the per-change debounce above still avoids writing on every
+ * keystroke during normal use.
  */
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -21,6 +33,10 @@ export function useLocalStorageState<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(initial);
   const [hydrated, setHydrated] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestValueRef = useRef<T>(value);
+  const latestKeyRef = useRef<string>(key);
+  latestValueRef.current = value;
+  latestKeyRef.current = key;
 
   // Load once on mount (client-only — localStorage doesn't exist during
   // server render, so the first render always uses `initial`).
@@ -74,6 +90,7 @@ export function useLocalStorageState<T>(key: string, initial: T) {
     if (!hydrated) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
+      debounceRef.current = null;
       try {
         window.localStorage.setItem(key, JSON.stringify(value));
       } catch {
@@ -84,6 +101,25 @@ export function useLocalStorageState<T>(key: string, initial: T) {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [key, value, hydrated]);
+
+  // Flush-on-unmount — see the file header. Empty dependency array means
+  // this cleanup only fires when the component actually unmounts, never
+  // on an ordinary re-render, so it can safely write the latest value
+  // immediately instead of the debounce silently dropping it.
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+        try {
+          window.localStorage.setItem(latestKeyRef.current, JSON.stringify(latestValueRef.current));
+        } catch {
+          // storage unavailable — nothing persists, same fallback as before
+        }
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return [value, setValue] as const;
 }
