@@ -123,7 +123,31 @@ export function ficaOnWages(wage: number): { employee: number; employer: number;
   return { employee: total / 2, employer: total / 2, total };
 }
 
-      
+/**
+ * Unrelated Business Income Tax (UBIT) — used by the Filing Status
+ * Guide's nonprofit-mode calculator. Even a tax-exempt organization owes
+ * federal income tax on income from a trade or business that's regularly
+ * carried on and not substantially related to its exempt purpose (rented
+ * parking, an unrelated retail operation, etc.). Simplified real math:
+ * gross unrelated income, less directly connected expenses, less the
+ * flat $1,000 specific deduction (IRC §512(b)(12)), taxed at the flat
+ * 21% corporate rate exempt organizations use post-TCJA. A Form 990-T
+ * is required whenever gross unrelated business income is $1,000 or
+ * more, even if the tax owed after deductions comes out to $0.
+ */
+const UBIT_SPECIFIC_DEDUCTION = 1000;
+const UBIT_TAX_RATE = 0.21;
+
+export function calcUbit(grossIncome: number, expenses: number) {
+  const netBeforeSpecificDeduction = Math.max(0, grossIncome - expenses);
+  const specificDeductionUsed = Math.min(UBIT_SPECIFIC_DEDUCTION, netBeforeSpecificDeduction);
+  const taxableUbi = Math.max(0, netBeforeSpecificDeduction - UBIT_SPECIFIC_DEDUCTION);
+  const tax = taxableUbi * UBIT_TAX_RATE;
+  const filingRequired = grossIncome >= 1000;
+  return { netBeforeSpecificDeduction, specificDeductionUsed, taxableUbi, tax, filingRequired };
+}
+
+
 export type EstimatorInput = {
   status: FilingStatus;
   kids: number;
