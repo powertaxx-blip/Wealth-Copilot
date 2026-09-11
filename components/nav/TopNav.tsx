@@ -52,13 +52,14 @@ const NAV: NavGroup[] = [
   },
 ];
 
-// Nonprofit Mode swaps these two tab labels to match what the panels
+// Nonprofit Mode swaps these tab labels to match what the panels
 // themselves are called once toggled — see lib/orgType.ts for why TopNav
 // specifically needs the live same-tab update (it mounts once in the
 // root layout, not fresh per page like most other panels).
 const NONPROFIT_LABEL_OVERRIDES: Record<string, string> = {
   "/balance": "⚖️ Statement of Financial Position",
   "/emergency": "🛟 Operating Reserve",
+  "/invoices": "🧾 Donation Receipts",
 };
 
 export function TopNav() {
