@@ -24,6 +24,8 @@ const NAV: NavGroup[] = [
       { href: "/filing", label: "📋 Filing Status Guide" },
       { href: "/faq", label: "💬 FAQ" },
       { href: "/quiz", label: "🧠 Financial IQ Quiz" },
+      { href: "/wills", label: "📜 Wills & Estates" },
+      { href: "/trusts", label: "🏛️ Trusts" },
     ],
   },
   {
