@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { TextField, NumberField, SelectField } from "@/components/ui/Field";
 import { ResultBox } from "@/components/ui/ResultBox";
 import { fmt } from "@/lib/format";
@@ -94,23 +95,20 @@ export function MileageTracker() {
           : "Log business trips one at a time — date, purpose, miles — and this totals them automatically at the IRS standard mileage rate, then hands that total straight to your Schedule C."
       }
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          {nonprofit ? (
-            <>
-              The Four Tops sang &quot;reach out, I&apos;ll be there&quot; — that&apos;s exactly what a volunteer
-              driving on your organization&apos;s behalf is doing. The tax code honors it too, just at its own
-              fixed rate: 14¢/mile, set by law and unchanged since 1998.
-            </>
-          ) : (
-            <>
-              Marvin Gaye asked &quot;what&apos;s going on?&quot; With mileage, the answer&apos;s simple — log the
-              trip the day it happens, before the odometer (or your memory) moves on.
-            </>
-          )}
-        </div>
-      </div>
+      <MentorNote>
+        {nonprofit ? (
+          <>
+            The Four Tops sang &quot;reach out, I&apos;ll be there&quot; — that&apos;s exactly what a volunteer
+            driving on your organization&apos;s behalf is doing. The tax code honors it too, just at its own
+            fixed rate: 14¢/mile, set by law and unchanged since 1998.
+          </>
+        ) : (
+          <>
+            Marvin Gaye asked &quot;what&apos;s going on?&quot; With mileage, the answer&apos;s simple — log the
+            trip the day it happens, before the odometer (or your memory) moves on.
+          </>
+        )}
+      </MentorNote>
 
       <div className={`grid gap-4 ${nonprofit ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
         <TextField

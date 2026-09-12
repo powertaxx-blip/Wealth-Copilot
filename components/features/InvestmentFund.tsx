@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { TextField, NumberField, SelectField } from "@/components/ui/Field";
 import { ResultBox } from "@/components/ui/ResultBox";
 import { fmt } from "@/lib/format";
@@ -147,14 +148,11 @@ export function InvestmentFund() {
       title="Investment Fund Tracker"
       lede="Log what you've invested and where, and watch your allocation take shape. Then use the projector below to see what steady contributions could grow into over time."
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          Saving protects what you have; investing is what puts time to work for you. The Upanishads speak of the
-          small seed that holds the whole tree inside it — a modest monthly contribution works the same way, given
-          enough years.
-        </div>
-      </div>
+      <MentorNote>
+        Saving protects what you have; investing is what puts time to work for you. The Upanishads speak of the
+        small seed that holds the whole tree inside it — a modest monthly contribution works the same way, given
+        enough years.
+      </MentorNote>
 
       <h3 className="text-lg">Holdings</h3>
       <div className="grid gap-4 sm:grid-cols-3">
@@ -317,13 +315,10 @@ export function InvestmentFund() {
         Business owners get two powerful self-employed retirement options, each with very different contribution
         room. Enter your numbers to see your 2025 limits side by side.
       </p>
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          The Bhagavad Gita speaks of storing up for what&apos;s ahead without attachment to the outcome — a
-          retirement account is that discipline in financial form.
-        </div>
-      </div>
+      <MentorNote>
+        The Bhagavad Gita speaks of storing up for what&apos;s ahead without attachment to the outcome — a
+        retirement account is that discipline in financial form.
+      </MentorNote>
       <div className="grid gap-4 sm:grid-cols-2">
         <NumberField
           label="Net self-employment profit this year"

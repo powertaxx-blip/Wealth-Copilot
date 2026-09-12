@@ -322,8 +322,15 @@ export function WelcomeVideo({ onClose }: { onClose: () => void }) {
 /**
  * Wrapper that decides *whether* to show the video: automatically, once,
  * for a person who's never seen it (tracked in localStorage the same way
- * every other panel's state is), and otherwise available on demand from a
- * plain "Watch the welcome video" button.
+ * every other panel's state is), and otherwise available on demand.
+ *
+ * v2: the rewatch control used to be a full-width "btn ghost" sitting in
+ * its own row above the Home hero — same visual weight as the actual
+ * "Continue" call to action, for something almost nobody clicks twice.
+ * Per user feedback, it's now a small text link with the same avatar face
+ * as the modal (so it's still recognizable as "the intro"), meant to sit
+ * inline next to the greeting on Home (see app/page.tsx's owner-name-row)
+ * instead of commanding its own line.
  */
 export function WelcomeVideoLauncher() {
   const [seen, setSeen] = useLocalStorageState<boolean>("wc.welcomeVideoSeen", false);
@@ -341,8 +348,9 @@ export function WelcomeVideoLauncher() {
   return (
     <>
       {!open && (
-        <button type="button" onClick={() => setOpen(true)} className="btn ghost">
-          ▶ Watch the Welcome Video
+        <button type="button" onClick={() => setOpen(true)} className="welcome-replay">
+          <AICharacterAvatar speaking={false} size={20} />
+          Replay intro
         </button>
       )}
       {open && <WelcomeVideo onClose={close} />}

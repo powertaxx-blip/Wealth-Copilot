@@ -212,8 +212,6 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <WelcomeVideoLauncher />
-
       <div className="card home-hero">
         <div style={{ flex: "1 1 280px", minWidth: 0 }}>
           <div className="owner-name-row">
@@ -253,6 +251,7 @@ export default function HomePage() {
                 </button>
               </form>
             )}
+            <WelcomeVideoLauncher />
           </div>
           <h2 className="text-2xl">Here&apos;s where things stand.</h2>
           <p className="mt-2 text-sm" style={{ color: "var(--ink-soft)" }}>

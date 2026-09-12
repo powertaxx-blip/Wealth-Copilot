@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { TextField, NumberField } from "@/components/ui/Field";
 import { ResultBox } from "@/components/ui/ResultBox";
 import { fmt } from "@/lib/format";
@@ -100,23 +101,20 @@ export function Invoices() {
               : "Build a real invoice — your business info, your client's, and as many line items as the job needs — watch the totals compute live, save it to your running list, then print or save it as a PDF to send."
           }
         >
-          <div className="mentor">
-            <div>
-              <span className="eyebrow">Mentor&apos;s Note</span>
-              {nonprofit ? (
-                <>
-                  Gladys Knight and the Pips sang about a &quot;midnight train&quot; — don&apos;t let a donor&apos;s
-                  gift become one you never acknowledge. A prompt, correct receipt is part of thanking them well,
-                  and it&apos;s what lets them actually claim the deduction.
-                </>
-              ) : (
-                <>
-                  Gladys Knight and the Pips sang about a &quot;midnight train&quot; — don&apos;t let a sent invoice
-                  become one you never hear from again. Log it, date it, and follow up before it goes cold.
-                </>
-              )}
-            </div>
-          </div>
+          <MentorNote>
+            {nonprofit ? (
+              <>
+                Gladys Knight and the Pips sang about a &quot;midnight train&quot; — don&apos;t let a donor&apos;s
+                gift become one you never acknowledge. A prompt, correct receipt is part of thanking them well,
+                and it&apos;s what lets them actually claim the deduction.
+              </>
+            ) : (
+              <>
+                Gladys Knight and the Pips sang about a &quot;midnight train&quot; — don&apos;t let a sent invoice
+                become one you never hear from again. Log it, date it, and follow up before it goes cold.
+              </>
+            )}
+          </MentorNote>
 
           <h3 className="text-lg">{nonprofit ? "From (Your Organization)" : "From (Your Business)"}</h3>
           <div className="grid gap-4 sm:grid-cols-2">

@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { NumberField } from "@/components/ui/Field";
 import { ResultBox, StatusPill } from "@/components/ui/ResultBox";
 import { fmt } from "@/lib/format";
@@ -207,24 +208,21 @@ export function Budgeting() {
           : "One guideline, three buckets: roughly 50% of take-home pay to Needs, 30% to Wants, 20% to Savings. Enter your real numbers below and see exactly where you stand against that guideline — not as a rule to obey blindly, but as a mirror to look into."
       }
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          {nonprofit ? (
-            <>
-              Harold Melvin &amp; The Blue Notes sang &quot;the world won&apos;t get no better if we just let it
-              be&quot; — a functional expense budget is how a nonprofit takes that seriously: proving, dollar for
-              dollar, that the mission comes before the overhead.
-            </>
-          ) : (
-            <>
-              Curtis Mayfield sang &quot;people get ready&quot; — a budget is exactly that: getting ready before
-              the storm, not scrambling during it. The plan isn&apos;t about restriction, it&apos;s about knowing
-              where every dollar is going before it goes there.
-            </>
-          )}
-        </div>
-      </div>
+      <MentorNote>
+        {nonprofit ? (
+          <>
+            Harold Melvin &amp; The Blue Notes sang &quot;the world won&apos;t get no better if we just let it
+            be&quot; — a functional expense budget is how a nonprofit takes that seriously: proving, dollar for
+            dollar, that the mission comes before the overhead.
+          </>
+        ) : (
+          <>
+            Curtis Mayfield sang &quot;people get ready&quot; — a budget is exactly that: getting ready before
+            the storm, not scrambling during it. The plan isn&apos;t about restriction, it&apos;s about knowing
+            where every dollar is going before it goes there.
+          </>
+        )}
+      </MentorNote>
 
       <NumberField
         label={nonprofit ? "Monthly revenue (donations, grants, program income)" : "Monthly take-home income (after tax)"}

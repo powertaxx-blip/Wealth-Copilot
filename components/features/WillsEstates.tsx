@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { NumberField, SelectField, TextField } from "@/components/ui/Field";
 import { ResultBox, StatusPill } from "@/components/ui/ResultBox";
 import { fmt } from "@/lib/format";
@@ -72,22 +73,19 @@ export function WillsEstates() {
           : "A will isn't just for the wealthy — it's the one document that decides who raises your children, who settles your affairs, and who receives what you built, instead of a state law and a probate judge deciding for you."
       }
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          {nonprofit ? (
-            <>
-              The Bhagavad Gita teaches that none of us keep what we build — it passes on regardless. A bequest is
-              simply choosing on purpose where a piece of that legacy goes, instead of leaving it to chance.
-            </>
-          ) : (
-            <>
-              The Temptations sang &quot;Papa was a rolling stone... and when he died, all he left us was
-              alone&quot; — a will is how you make sure that&apos;s never your family&apos;s story.
-            </>
-          )}
-        </div>
-      </div>
+      <MentorNote>
+        {nonprofit ? (
+          <>
+            The Bhagavad Gita teaches that none of us keep what we build — it passes on regardless. A bequest is
+            simply choosing on purpose where a piece of that legacy goes, instead of leaving it to chance.
+          </>
+        ) : (
+          <>
+            The Temptations sang &quot;Papa was a rolling stone... and when he died, all he left us was
+            alone&quot; — a will is how you make sure that&apos;s never your family&apos;s story.
+          </>
+        )}
+      </MentorNote>
 
       {!nonprofit ? (
         <>

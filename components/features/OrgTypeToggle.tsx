@@ -1,6 +1,7 @@
 "use client";
 
 import { useOrgType } from "@/lib/orgType";
+import { MentorNote } from "@/components/ui/MentorNote";
 
 /**
  * The one switch behind "Nonprofit Mode." A 501(c)(3) isn't a for-profit
@@ -25,15 +26,12 @@ export function OrgTypeToggle() {
         </select>
       </div>
 
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          The Bhagavad Gita teaches that you have the right to your labor, but never to the fruits of it. A
-          for-profit owner takes those fruits home as equity; a nonprofit&apos;s fruits — its net assets — belong
-          to the mission, not to any person. That one idea is why a nonprofit&apos;s numbers get called something
-          different, not just smaller.
-        </div>
-      </div>
+      <MentorNote>
+        The Bhagavad Gita teaches that you have the right to your labor, but never to the fruits of it. A
+        for-profit owner takes those fruits home as equity; a nonprofit&apos;s fruits — its net assets — belong
+        to the mission, not to any person. That one idea is why a nonprofit&apos;s numbers get called something
+        different, not just smaller.
+      </MentorNote>
 
       {orgType === "nonprofit" ? (
         <p className="text-sm max-w-[62ch]" style={{ color: "var(--ink-soft)" }}>

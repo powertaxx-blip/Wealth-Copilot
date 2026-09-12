@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { NumberField } from "@/components/ui/Field";
 import { fmt } from "@/lib/format";
 import { useOrgType } from "@/lib/orgType";
@@ -91,26 +92,23 @@ export function BalanceSheet() {
           : "A balance sheet answers one question: what does the business own, and who has a claim on it? Assets = Liabilities + Equity, always. If it doesn't balance, something's missing."
       }
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          {nonprofit ? (
-            <>
-              As the Bhagavad Gita reminds us, &quot;you have the right to your labor, but never to the fruits of
-              your labor.&quot; A nonprofit&apos;s balance sheet keeps that same honesty — the fruits (Net Assets)
-              belong to the mission, not to any person, and this shows exactly how much of it a donor has
-              earmarked versus how much the board is free to direct.
-            </>
-          ) : (
-            <>
-              As the Bhagavad Gita reminds us, &quot;you have the right to your labor, but never to the fruits of
-              your labor.&quot; A balance sheet keeps that same honesty — it shows exactly what&apos;s truly
-              yours (equity) versus what you owe others (liabilities), no matter how good business felt this
-              year.
-            </>
-          )}
-        </div>
-      </div>
+      <MentorNote>
+        {nonprofit ? (
+          <>
+            As the Bhagavad Gita reminds us, &quot;you have the right to your labor, but never to the fruits of
+            your labor.&quot; A nonprofit&apos;s balance sheet keeps that same honesty — the fruits (Net Assets)
+            belong to the mission, not to any person, and this shows exactly how much of it a donor has
+            earmarked versus how much the board is free to direct.
+          </>
+        ) : (
+          <>
+            As the Bhagavad Gita reminds us, &quot;you have the right to your labor, but never to the fruits of
+            your labor.&quot; A balance sheet keeps that same honesty — it shows exactly what&apos;s truly
+            yours (equity) versus what you owe others (liabilities), no matter how good business felt this
+            year.
+          </>
+        )}
+      </MentorNote>
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>

@@ -1,6 +1,7 @@
       "use client";
 
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { NumberField } from "@/components/ui/Field";
 import { ResultBox } from "@/components/ui/ResultBox";
 import { fmt } from "@/lib/format";
@@ -35,12 +36,9 @@ export function BreakEvenCalculator() {
       title="Break-Even & Pricing Calculator"
       lede="Two questions every entrepreneur has to answer before setting a price: how many do I need to sell just to stop losing money, and what should I actually charge to hit the margin I need?"
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          Marvin Gaye asked &quot;what&apos;s going on&quot; — your break-even number is the answer.
-        </div>
-      </div>
+      <MentorNote>
+        Marvin Gaye asked &quot;what&apos;s going on&quot; — your break-even number is the answer.
+      </MentorNote>
 
       <h3 className="text-lg">Break-Even Point</h3>
       <div className="grid gap-4 sm:grid-cols-3">

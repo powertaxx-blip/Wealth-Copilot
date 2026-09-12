@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { TextField, NumberField, SelectField } from "@/components/ui/Field";
 import { ResultBox } from "@/components/ui/ResultBox";
 import { fmt } from "@/lib/format";
@@ -86,13 +87,10 @@ export function BusinessExpenses() {
       title="Business Expenses Tracker"
       lede="Log expenses one at a time, the way they actually happen — a receipt here, a subscription there. This keeps a running ledger and totals everything by category, then hands those totals straight to your Schedule C."
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          The Temptations said it best — &quot;just my imagination, running away with me.&quot; Don&apos;t let your
-          expenses do the same; a logged receipt today beats a shoebox in April.
-        </div>
-      </div>
+      <MentorNote>
+        The Temptations said it best — &quot;just my imagination, running away with me.&quot; Don&apos;t let your
+        expenses do the same; a logged receipt today beats a shoebox in April.
+      </MentorNote>
       <div className="grid gap-4 sm:grid-cols-3">
         <TextField
           label="Date"

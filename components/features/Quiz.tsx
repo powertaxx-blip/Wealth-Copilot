@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { ResultBox, StatusPill } from "@/components/ui/ResultBox";
 import { useOrgType } from "@/lib/orgType";
 import { useLocalStorageState } from "@/lib/useLocalStorageState";
@@ -99,25 +100,22 @@ export function Quiz() {
           : "Twelve questions, freshly drawn each run from a larger pool covering the calculators in this app — mileage, budgeting, break-even, debt payoff, and more. Answer one at a time; the explanation shows up right away, not just at the end."
       }
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          {nonprofit ? (
-            <>
-              The Bhagavad Gita calls knowledge &quot;the ultimate purifier&quot; — not knowledge for its own sake,
-              but knowledge that lets you act rightly on behalf of something bigger than yourself. A board or
-              staff member who actually understands these rules serves the mission better than one who just
-              trusts the paperwork.
-            </>
-          ) : (
-            <>
-              Stevie Wonder kept singing &quot;I&apos;m so glad that I know&quot; on his way to <b>higher ground</b>{" "}
-              — getting a question wrong here costs nothing. Not knowing it out in the world can cost real
-              money.
-            </>
-          )}
-        </div>
-      </div>
+      <MentorNote>
+        {nonprofit ? (
+          <>
+            The Bhagavad Gita calls knowledge &quot;the ultimate purifier&quot; — not knowledge for its own sake,
+            but knowledge that lets you act rightly on behalf of something bigger than yourself. A board or
+            staff member who actually understands these rules serves the mission better than one who just
+            trusts the paperwork.
+          </>
+        ) : (
+          <>
+            Stevie Wonder kept singing &quot;I&apos;m so glad that I know&quot; on his way to <b>higher ground</b>{" "}
+            — getting a question wrong here costs nothing. Not knowing it out in the world can cost real
+            money.
+          </>
+        )}
+      </MentorNote>
 
       {progress.draw.length === 0 ? (
         <p className="text-sm" style={{ color: "var(--muted)" }}>

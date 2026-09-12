@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { NumberField } from "@/components/ui/Field";
 import { StatusPill } from "@/components/ui/ResultBox";
 import { fmt } from "@/lib/format";
@@ -105,14 +106,11 @@ export function FilingStatusGuide() {
       title="What You Need to File — Filing Status Guide"
       lede="Filing status isn't just a checkbox — it decides your standard deduction, your tax brackets, and which credits you can even claim. Here's what each one means and what paperwork it takes, in plain English."
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          The Bhagavad Gita teaches that every person has their own <i>dharma</i> — their own rightful duty and
-          place. Your filing status works the same way: it&apos;s not about which one sounds best, it&apos;s about
-          which one actually fits your real life on December 31st.
-        </div>
-      </div>
+      <MentorNote>
+        The Bhagavad Gita teaches that every person has their own <i>dharma</i> — their own rightful duty and
+        place. Your filing status works the same way: it&apos;s not about which one sounds best, it&apos;s about
+        which one actually fits your real life on December 31st.
+      </MentorNote>
 
       <h3 className="text-lg">Individuals</h3>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -222,14 +220,11 @@ export function FilingStatusGuide() {
       ) : (
         <>
           <h3 className="text-lg mt-2">Nonprofit Entity Types</h3>
-          <div className="mentor">
-            <div>
-              <span className="eyebrow">Mentor&apos;s Note</span>
-              The Chi-Lites sang &quot;give more power to the people&quot; — a Form 990 is how a nonprofit lives
-              that out. Unlike a personal or even a for-profit business return, it&apos;s public record: any
-              donor, watchdog group, or curious neighbor can request and read yours.
-            </div>
-          </div>
+          <MentorNote>
+            The Chi-Lites sang &quot;give more power to the people&quot; — a Form 990 is how a nonprofit lives
+            that out. Unlike a personal or even a for-profit business return, it&apos;s public record: any
+            donor, watchdog group, or curious neighbor can request and read yours.
+          </MentorNote>
           <div className="grid gap-4 sm:grid-cols-2">
             <RefCard title="501(c)(3) Public Charity">
               <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
@@ -409,15 +404,12 @@ export function FilingStatusGuide() {
             out parking, running an unrelated retail operation — the income from it can be taxed just like a
             for-profit business&apos;s. Run your own numbers below.
           </p>
-          <div className="mentor">
-            <div>
-              <span className="eyebrow">Mentor&apos;s Note</span>
-              The Bhagavad Gita teaches that selfless action isn&apos;t about avoiding the world&apos;s
-              transactions — it&apos;s about engaging with them without attachment to the fruits. The IRS takes a
-              similar view of a nonprofit&apos;s <i>unrelated</i> income: it just wants its 21% share of the part
-              that isn&apos;t mission-driven.
-            </div>
-          </div>
+          <MentorNote>
+            The Bhagavad Gita teaches that selfless action isn&apos;t about avoiding the world&apos;s
+            transactions — it&apos;s about engaging with them without attachment to the fruits. The IRS takes a
+            similar view of a nonprofit&apos;s <i>unrelated</i> income: it just wants its 21% share of the part
+            that isn&apos;t mission-driven.
+          </MentorNote>
           <div className="grid gap-4 sm:grid-cols-2">
             <NumberField
               label="Gross income from unrelated business activity"

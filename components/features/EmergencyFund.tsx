@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { NumberField, SelectField, TextField } from "@/components/ui/Field";
 import { ResultBox, StatusPill } from "@/components/ui/ResultBox";
 import { fmt } from "@/lib/format";
@@ -91,13 +92,10 @@ export function EmergencyFund() {
           : "An emergency fund isn't a savings goal for fun — it's the wall between you and a credit card emergency. Enter your numbers to see exactly how covered you are, and what it takes to close the gap."
       }
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          &quot;Ain&apos;t No Mountain High Enough&quot; is a love song, but it&apos;s also patience set to music —
-          the fund gets built the same way, month after month, not in one leap.
-        </div>
-      </div>
+      <MentorNote>
+        &quot;Ain&apos;t No Mountain High Enough&quot; is a love song, but it&apos;s also patience set to music —
+        the fund gets built the same way, month after month, not in one leap.
+      </MentorNote>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <NumberField

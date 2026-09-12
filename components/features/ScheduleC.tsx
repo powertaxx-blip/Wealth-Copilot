@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { TextField, NumberField } from "@/components/ui/Field";
 import { ResultBox } from "@/components/ui/ResultBox";
 import { fmt } from "@/lib/format";
@@ -54,13 +55,10 @@ export function ScheduleC() {
       title="Schedule C Builder — Profit or Loss From Business"
       lede="This mirrors the real IRS Schedule C layout. Enter your numbers and watch your net profit build in real time, line by line."
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          The Upanishads teach that a wise person sees the small and the large as one connected whole — an $8 supply
-          receipt matters just as much as the big contract.
-        </div>
-      </div>
+      <MentorNote>
+        The Upanishads teach that a wise person sees the small and the large as one connected whole — an $8 supply
+        receipt matters just as much as the big contract.
+      </MentorNote>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <TextField

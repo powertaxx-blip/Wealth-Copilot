@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { NumberField, SelectField } from "@/components/ui/Field";
 import { ResultBox } from "@/components/ui/ResultBox";
 import { Tip } from "@/components/ui/Tip";
@@ -62,12 +63,9 @@ export function TaxEstimator() {
       title="Tax Estimator"
       lede="Federal, self-employment, and all 50 states' + DC state income tax — plus a local tax field for your city or county, the Earned Income Tax Credit, and a quarterly estimated-payment schedule if you owe. Tax year 2025 (filed 2026)."
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          The O&apos;Jays said it plain — &quot;for the love of money.&quot; Run your real numbers before you guess.
-        </div>
-      </div>
+      <MentorNote>
+        The O&apos;Jays said it plain — &quot;for the love of money.&quot; Run your real numbers before you guess.
+      </MentorNote>
 
       <h3 className="text-lg">Household</h3>
       <div className="grid gap-4 sm:grid-cols-2">

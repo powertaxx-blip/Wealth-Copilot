@@ -2,6 +2,7 @@
 
 import { Card } from "@/components/ui/Card";
 import { useOrgType } from "@/lib/orgType";
+import { MentorNote } from "@/components/ui/MentorNote";
 
 /**
  * New panel — reference content on trust fundamentals, same "mostly
@@ -41,24 +42,21 @@ export function Trusts() {
           : "A trust isn't just an estate-planning tool for the wealthy — it's a legal container that can skip probate entirely, plan for incapacity, and (done right) protect assets in ways a will alone never can."
       }
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          {nonprofit ? (
-            <>
-              The Puranas describe dana (giving) as most powerful when it costs the giver something real — a
-              charitable trust is exactly that: a donor gives up outright ownership today so the gift is certain
-              tomorrow.
-            </>
-          ) : (
-            <>
-              Gladys Knight & the Pips sang &quot;I&apos;ve got to use my imagination&quot; — a trust is imagination
-              applied to your estate: naming exactly how and when your assets reach the people you actually intend,
-              instead of handing that decision to a probate court.
-            </>
-          )}
-        </div>
-      </div>
+      <MentorNote>
+        {nonprofit ? (
+          <>
+            The Puranas describe dana (giving) as most powerful when it costs the giver something real — a
+            charitable trust is exactly that: a donor gives up outright ownership today so the gift is certain
+            tomorrow.
+          </>
+        ) : (
+          <>
+            Gladys Knight & the Pips sang &quot;I&apos;ve got to use my imagination&quot; — a trust is imagination
+            applied to your estate: naming exactly how and when your assets reach the people you actually intend,
+            instead of handing that decision to a probate court.
+          </>
+        )}
+      </MentorNote>
 
       {!nonprofit ? (
         <>

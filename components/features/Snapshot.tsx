@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
+import { MentorNote } from "@/components/ui/MentorNote";
 import { StatusPill } from "@/components/ui/ResultBox";
 import { fmt } from "@/lib/format";
 import { useOrgType } from "@/lib/orgType";
@@ -102,23 +103,20 @@ export function Snapshot() {
       title="Snapshot"
       lede="One page pulling together whatever you've already entered across the rest of this app — nothing here is editable; every card links back to where the number actually lives."
     >
-      <div className="mentor">
-        <div>
-          <span className="eyebrow">Mentor&apos;s Note</span>
-          {nonprofit ? (
-            <>
-              The Upanishads teach &quot;as is the microcosm, so is the macrocosm&quot; — this page is that idea
-              turned into a dashboard: every small number entered somewhere else in this app adds up into the one
-              picture of where the organization actually stands.
-            </>
-          ) : (
-            <>
-              Marvin Gaye asked &quot;what&apos;s going on&quot; on Break-Even; here&apos;s the answer for
-              everything at once — one page, the whole picture, no digging through eleven tabs to see it.
-            </>
-          )}
-        </div>
-      </div>
+      <MentorNote>
+        {nonprofit ? (
+          <>
+            The Upanishads teach &quot;as is the microcosm, so is the macrocosm&quot; — this page is that idea
+            turned into a dashboard: every small number entered somewhere else in this app adds up into the one
+            picture of where the organization actually stands.
+          </>
+        ) : (
+          <>
+            Marvin Gaye asked &quot;what&apos;s going on&quot; on Break-Even; here&apos;s the answer for
+            everything at once — one page, the whole picture, no digging through eleven tabs to see it.
+          </>
+        )}
+      </MentorNote>
 
       <div className="flex justify-end">
         <button type="button" className="btn ghost" onClick={refresh}>

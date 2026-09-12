@@ -1,11 +1,15 @@
 "use client";
 
-export function AICharacterAvatar({ speaking }: { speaking: boolean }) {
+/** `size` defaults to the full 120px modal badge. Pass a smaller value (see
+ * the "Replay intro" trigger in WelcomeVideo.tsx) to reuse the same face as
+ * a small recognizable icon elsewhere, instead of a generic emoji or glyph. */
+export function AICharacterAvatar({ speaking, size = 120 }: { speaking: boolean; size?: number }) {
+  const faceSize = Math.round(size * 0.5);
   return (
     <div
       style={{
-        width: 120,
-        height: 120,
+        width: size,
+        height: size,
         borderRadius: "50%",
         background: "linear-gradient(135deg, var(--navy-2) 0%, var(--navy) 60%, var(--gold) 130%)",
         display: "flex",
@@ -18,7 +22,7 @@ export function AICharacterAvatar({ speaking }: { speaking: boolean }) {
       }}
       aria-hidden="true"
     >
-      <svg viewBox="0 0 100 100" width="60" height="60">
+      <svg viewBox="0 0 100 100" width={faceSize} height={faceSize}>
         <g>
           <circle className="wc-avatar-eye" cx="32" cy="46" r="6" fill="#fff" />
           <circle className="wc-avatar-eye" cx="68" cy="46" r="6" fill="#fff" />
