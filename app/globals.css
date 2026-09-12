@@ -368,6 +368,193 @@ td {
   color: var(--ink-soft);
 }
 
+.status-pill.neutral {
+  background: var(--line-soft);
+  color: var(--muted);
+}
+
+/* =========================================================
+   HOME PAGE — redesigned nav/Home from the design-critique pass.
+   Reuses the same tokens as everywhere else (--paper, --line, --gold,
+   --status-good) so this page doesn't introduce a second visual
+   language of its own.
+   ========================================================= */
+.home-hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 26px;
+  align-items: center;
+  justify-content: space-between;
+}
+.home-hero .progress-track {
+  width: 190px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line-soft);
+  overflow: hidden;
+}
+.home-hero .progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  border-radius: 999px;
+}
+
+.owner-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.owner-name-edit {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--navy-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 0;
+}
+.owner-name-edit:hover {
+  text-decoration: underline;
+}
+.owner-name-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.owner-name-form input {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  min-width: 170px;
+}
+
+.home-checklist {
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.home-checklist ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.home-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13.5px;
+  padding: 4px 2px;
+}
+.home-checklist .box {
+  width: 17px;
+  height: 17px;
+  border-radius: 5px;
+  border: 1.5px solid var(--line);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #fff;
+}
+.home-checklist li.done .box {
+  background: var(--status-good);
+  border-color: var(--status-good);
+}
+.home-checklist li.done .label {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.home-group h3 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+.home-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.home-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+.home-tile:hover {
+  border-color: var(--gold);
+}
+.home-tile:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.home-tile .top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.home-tile .chip {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--line-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+.home-tile .title {
+  font-weight: 600;
+  font-size: 14px;
+}
+.home-tile .desc {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.35;
+}
+
+.home-databar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.home-databar p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 /* =========================================================
    PRINT STYLES — used by Invoices' "Print / Save as PDF" button
    (components/features/Invoices.tsx). window.print() is the whole
