@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useOrgType } from "@/lib/orgType";
+import { BrandMark } from "@/components/ui/BrandMark";
 
 type NavItem = { href: string; label: string; nonprofitLabel?: string; emoji: string };
 type NavGroup = { label: string; items: NavItem[] };
@@ -112,12 +113,7 @@ export function TopNav() {
     <header style={{ background: "var(--brand-surface)", borderBottom: "1px solid var(--line)" }}>
       <div ref={rootRef} className="mx-auto flex max-w-[1180px] flex-wrap items-center gap-3 px-6 py-3">
         <Link href="/" className="flex shrink-0 items-center gap-2.5" style={{ textDecoration: "none" }}>
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-semibold"
-            style={{ background: "var(--gold)", color: "var(--on-gold)" }}
-          >
-            PT
-          </div>
+          <BrandMark size={36} />
           <div>
             <div
               className="text-[15px] font-semibold leading-tight"

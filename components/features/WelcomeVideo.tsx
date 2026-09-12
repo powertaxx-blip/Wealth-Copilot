@@ -1,7 +1,7 @@
         "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AICharacterAvatar } from "@/components/features/AICharacterAvatar";
+import { BrandMark } from "@/components/ui/BrandMark";
 import { useLocalStorageState } from "@/lib/useLocalStorageState";
 
 /**
@@ -252,16 +252,36 @@ export function WelcomeVideo({ onClose }: { onClose: () => void }) {
           ×
         </button>
 
+        <div className="flex justify-center">
+          {/* The real Power Taxx Ltd. logo — see public/brand/power-taxx-logo.png.
+              This used to be a generic drawn face; a first-time visitor should
+              see whose product this actually is before anything else. The glow
+              ring (reused from the old avatar's "speaking" cue) still pulses
+              while the narration plays, just around the real mark instead of a
+              cartoon one. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/brand/power-taxx-logo.png"
+            alt="Power Taxx Ltd."
+            style={{
+              width: 150,
+              height: "auto",
+              borderRadius: 14,
+              boxShadow:
+                status === "playing"
+                  ? "0 0 0 8px rgba(124, 58, 237, 0.22), 0 10px 26px -10px rgba(0,0,0,.55)"
+                  : "0 10px 26px -10px rgba(0,0,0,.55)",
+              transition: "box-shadow 0.4s ease",
+            }}
+          />
+        </div>
+
         <span
-          className="w-fit rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide"
+          className="mt-3 w-fit rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide"
           style={{ background: "var(--line-soft)", color: "var(--navy-2)", display: "inline-block" }}
         >
           Welcome to Wealth Copilot
         </span>
-
-        <div className="mt-4 flex justify-center">
-          <AICharacterAvatar speaking={status === "playing"} />
-        </div>
 
         <div
           className="mt-4"
@@ -349,7 +369,7 @@ export function WelcomeVideoLauncher() {
     <>
       {!open && (
         <button type="button" onClick={() => setOpen(true)} className="welcome-replay">
-          <AICharacterAvatar speaking={false} size={20} />
+          <BrandMark size={20} />
           Replay intro
         </button>
       )}
