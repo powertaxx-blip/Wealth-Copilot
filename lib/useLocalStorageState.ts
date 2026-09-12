@@ -24,15 +24,76 @@ import { useEffect, useRef, useState } from "react";
  * unmount: it flushes the latest value immediately instead of discarding
  * it, while the per-change debounce above still avoids writing on every
  * keystroke during normal use.
+ *
+ * `hydrated` (added for the Financial IQ Quiz's randomized draw) is the
+ * one extra thing a consumer sometimes needs to know: "has the mount-effect
+ * had its chance to load whatever was already saved?" A component that
+ * wants to run its own one-time setup ONLY when nothing was saved yet
+ * (Quiz.tsx's "draw 12 random questions if this is a fresh session")
+ * has to wait for that load to finish first — checking `hydrated` before
+ * acting avoids a race where the fresh-setup logic fires before the saved
+ * value has actually been read back in, and stomps on it.
+ *
+ * Bug found and fixed while wiring up the Quiz's randomized draw: this
+ * hook was written assuming `key` stays fixed for a component instance's
+ * whole life — true for every panel before Quiz.tsx, which always calls
+ * it with one hardcoded key. Quiz.tsx is the first caller to compute its
+ * key at runtime (`wc.quiz.standard` vs. `wc.quiz.nonprofit`, depending on
+ * Nonprofit Mode) and pass a DIFFERENT key into the SAME mounted hook
+ * instance when the mode toggles — the component doesn't unmount, so
+ * React doesn't give this hook a fresh start the way a new key normally
+ * implies. Without a guard, `value` keeps holding whatever was drawn for
+ * the OLD key for one render after `key` has already changed to the new
+ * one — a real crash, not just stale data: the standard mode's drawn
+ * question indices, resolved against the nonprofit question pool,
+ * pointed past the end of a differently-ordered array and threw. The
+ * `trackedKey` check below resets `value` and `hydrated` the moment `key`
+ * itself changes, using React's documented "adjust state during
+ * rendering" pattern. One further subtlety that a first pass at this fix
+ * missed: calling `setValue(initial)` mid-render schedules the reset for
+ * the *next* render — it does NOT change what the `value` variable
+ * already holds for the render currently in progress. Quiz.tsx computes
+ * `pool` from Nonprofit Mode (a separate hook) and immediately maps over
+ * this hook's returned `value` in the very same render pass, so without
+ * also overriding the local `value` used for THIS render's own return,
+ * the still-stale old-key value would get returned and rendered — paired
+ * with the already-new `pool` — and crash before React ever got to apply
+ * the scheduled reset. Shadowing `value` (and `hydrated`) with the reset
+ * values for the in-progress render closes that gap: the render that
+ * detects the key change immediately renders as if already reset, and
+ * the mount effect below (its own `[key]` dependency changed too) then
+ * loads whatever was actually saved under the new key, if anything.
+ * Every other caller passes a constant key, so `trackedKey` never differs
+ * from `key` for them and none of this ever triggers — zero behavior
+ * change for the other 17 uses of this hook.
  */
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
 export function useLocalStorageState<T>(key: string, initial: T) {
-  const [value, setValue] = useState<T>(initial);
-  const [hydrated, setHydrated] = useState(false);
+  const [valueState, setValue] = useState<T>(initial);
+  const [hydratedState, setHydrated] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // See the file header — resets value/hydrated the instant `key` changes
+  // on an already-mounted instance, before anything renders with the old
+  // value paired against the new key. Safe no-op for the (overwhelming)
+  // common case of a caller that never changes its key. `value`/`hydrated`
+  // (not the raw `valueState`/`hydratedState`) are what the rest of this
+  // hook — and its caller — actually uses, precisely so THIS render's
+  // output reflects the reset immediately instead of one render late.
+  const [trackedKey, setTrackedKey] = useState(key);
+  let value = valueState;
+  let hydrated = hydratedState;
+  if (key !== trackedKey) {
+    setTrackedKey(key);
+    setValue(initial);
+    setHydrated(false);
+    value = initial;
+    hydrated = false;
+  }
+
   const latestValueRef = useRef<T>(value);
   const latestKeyRef = useRef<string>(key);
   latestValueRef.current = value;
@@ -121,5 +182,5 @@ export function useLocalStorageState<T>(key: string, initial: T) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return [value, setValue] as const;
+  return [value, setValue, hydrated] as const;
 }

@@ -9,13 +9,23 @@
  * whether a fact from another panel actually stuck, not to introduce
  * brand-new material cold.
  *
- * Nonprofit Mode gets its own 12-question set instead of relabeling the
+ * Nonprofit Mode gets its own question set instead of relabeling the
  * standard one, the same way Budgeting and Filing Status Guide got their
  * own nonprofit content rather than a reskinned version of the
  * for-profit material — a 501(c)(3)'s fundamentals (UBIT, Form 990,
  * donor restrictions) aren't a relabeling of an individual's fundamentals
  * (marginal tax rates, SE tax, diversification), they're a different
  * body of knowledge entirely.
+ *
+ * Randomized draw: each pool below holds more questions than any single
+ * quiz run shows (20, vs. 12 shown per run). Real feedback from actually
+ * using this with a client — get the same 12 questions in the same order
+ * every time you retake it, and it stops testing whether the knowledge
+ * stuck and starts just testing whether you remember last time's answer
+ * key. drawQuiz() below randomly samples QUIZ_LENGTH questions from the
+ * full pool AND shuffles each question's own answer options, so retaking
+ * the quiz (or clicking "New Quiz") gives a genuinely different run, not
+ * just the same 12 in a different order.
  */
 
 export type QuizQuestion = {
@@ -24,6 +34,8 @@ export type QuizQuestion = {
   correctIndex: number;
   explanation: string;
 };
+
+export const QUIZ_LENGTH = 12;
 
 export const STANDARD_QUESTIONS: QuizQuestion[] = [
   {
@@ -139,6 +151,66 @@ export const STANDARD_QUESTIONS: QuizQuestion[] = [
     correctIndex: 0,
     explanation:
       "The math is simple: whichever number is bigger — your itemized total or the standard deduction — is the one that lowers your taxable income more.",
+  },
+  {
+    question: "On a W-2, what does the withholding on federal income tax actually estimate?",
+    options: [
+      "Your exact final tax bill for the year, dollar for dollar",
+      "A running prepayment toward whatever your actual tax bill turns out to be",
+      "A separate tax owed on top of your income tax",
+      "A refundable credit unrelated to income tax",
+    ],
+    correctIndex: 1,
+    explanation:
+      "Withholding is a prepayment, not the final answer — that's why some people get refunds (they overpaid through the year) and others owe more (they underpaid).",
+  },
+  {
+    question: "What does the Schedule C panel in this app calculate?",
+    options: [
+      "W-2 wage income only",
+      "Profit or loss from a sole proprietorship or single-member LLC",
+      "Corporate income tax for a C-Corp",
+      "Capital gains from selling stock",
+    ],
+    correctIndex: 1,
+    explanation:
+      "Schedule C reports business income and expenses for a sole proprietor or single-member LLC — the result (profit or loss) flows onto the owner's personal return, where SE tax also applies to any profit.",
+  },
+  {
+    question: "Why does this app's Business Expenses panel separate expenses by category instead of one lump total?",
+    options: [
+      "It doesn't matter — the IRS only wants a single total",
+      "Different categories map to specific lines on Schedule C, and some (like meals) have special deduction rules",
+      "Categories are just for the user's own curiosity, with no tax effect",
+      "Only businesses with employees need to categorize expenses",
+    ],
+    correctIndex: 1,
+    explanation:
+      "Schedule C itself is broken into specific expense lines, and a few categories carry their own rules (business meals are generally only 50% deductible, for example) — lumping everything together loses that detail.",
+  },
+  {
+    question: "An emergency fund and an investment account serve different jobs. Which statement is accurate?",
+    options: [
+      "They're interchangeable — any liquid savings counts as both",
+      "An emergency fund needs to be safe and immediately accessible; an investment account can accept more risk in exchange for long-term growth",
+      "An emergency fund should always be invested in stocks for maximum growth",
+      "Only businesses need an emergency fund — individuals don't",
+    ],
+    correctIndex: 1,
+    explanation:
+      "An emergency fund's job is to be there, in full, the day you need it — that means cash or cash-equivalents, not something that could be down 20% the week your car breaks down.",
+  },
+  {
+    question: "In the Investment Fund calculator, what does \"compounding\" actually describe?",
+    options: [
+      "Interest paid only on your original deposit, every year",
+      "Interest (or growth) earned on both your original deposit and on previously earned interest",
+      "A one-time bonus for opening an account",
+      "A penalty for withdrawing early",
+    ],
+    correctIndex: 1,
+    explanation:
+      "Compounding is growth on top of growth — each year's earnings join the balance and start earning their own return the following year, which is why long time horizons matter so much.",
   },
 ];
 
@@ -271,14 +343,106 @@ export const NONPROFIT_QUESTIONS: QuizQuestion[] = [
     explanation:
       "Intermediate sanctions hit the individual (and sometimes board members who approved it) with excise taxes — a targeted penalty that exists as a real deterrent short of the \"nuclear option\" of revoking the org's exemption.",
   },
+  {
+    question: "A 501(c)(6) entity type in this app's Filing Status Guide is best described as:",
+    options: [
+      "A private foundation",
+      "A trade or business league funded by member dues, not public donations",
+      "The same thing as a 501(c)(3) public charity",
+      "A government agency",
+    ],
+    correctIndex: 1,
+    explanation:
+      "A 501(c)(6) — think chambers of commerce or trade associations — runs on member dues rather than deductible public donations, and files its own Form 1024 application, distinct from a 501(c)(3).",
+  },
+  {
+    question: "Why does a 501(c)(4) need to file Form 8976 within 60 days of formation?",
+    options: [
+      "It's optional paperwork with no real deadline",
+      "It's the notice to the IRS that a new social welfare organization has formed, required specifically for (c)(4)s",
+      "It's the same as filing for 501(c)(3) status",
+      "It only applies to organizations with over $1 million in assets",
+    ],
+    correctIndex: 1,
+    explanation:
+      "Form 8976 is a self-declaration notice unique to 501(c)(4)s — unlike a 501(c)(3), a (c)(4) doesn't need IRS pre-approval to operate, but it does have to notify the IRS it exists within that 60-day window.",
+  },
+  {
+    question: "Why does this app's Donation Receipts panel ask whether goods or services were provided in exchange for a gift?",
+    options: [
+      "It's just a courtesy note with no tax effect",
+      "Because only the portion of the gift that exceeds the fair market value of anything received back is actually tax-deductible",
+      "Because all donations become non-deductible the moment anything is given in return",
+      "Because the IRS requires it only for donations under $10",
+    ],
+    correctIndex: 1,
+    explanation:
+      "A quid-pro-quo contribution (a gala ticket, a thank-you gift) means the donor's deduction is limited to the amount given minus the value of what they received — the receipt has to spell that split out.",
+  },
+  {
+    question: "What does \"functional expense reporting\" (program vs. management & general vs. fundraising) let a donor or watchdog group evaluate?",
+    options: [
+      "The organization's total headcount",
+      "Roughly how much of every dollar spent goes toward the actual mission versus overhead and fundraising costs",
+      "The founder's personal net worth",
+      "Nothing meaningful — it's purely cosmetic",
+    ],
+    correctIndex: 1,
+    explanation:
+      "This is exactly what charity watchdogs (and plenty of donors) look at first — a program-services percentage that's too low is often read as a red flag for how efficiently a nonprofit runs.",
+  },
 ];
 
-export type QuizProgress = {
-  answers: (number | null)[];
+/** A single question drawn into a specific quiz run: which pool entry,
+ * and in what shuffled order its options are displayed. Storing this
+ * (rather than re-deriving it) means a mid-quiz page reload shows the
+ * exact same draw the person was already answering, instead of
+ * silently reshuffling underneath them. */
+export type DrawnQuestion = {
+  poolIndex: number;
+  optionOrder: number[]; // optionOrder[displayed position] = original option index
 };
 
-export function blankProgress(count: number): QuizProgress {
-  return { answers: Array(count).fill(null) };
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** Randomly samples `count` distinct questions from `pool` and shuffles
+ * each one's answer options, so neither the question mix nor the
+ * position of the right answer is memorizable across runs. */
+export function drawQuiz(pool: QuizQuestion[], count: number = QUIZ_LENGTH): DrawnQuestion[] {
+  const n = Math.min(count, pool.length);
+  const poolIndices = shuffle(pool.map((_, i) => i)).slice(0, n);
+  return poolIndices.map((poolIndex) => ({
+    poolIndex,
+    optionOrder: shuffle(pool[poolIndex].options.map((_, i) => i)),
+  }));
+}
+
+/** Resolves a DrawnQuestion back into the question/options/correctIndex
+ * shape the UI actually renders, applying the stored shuffle. */
+export function resolveQuestion(pool: QuizQuestion[], dq: DrawnQuestion): QuizQuestion {
+  const base = pool[dq.poolIndex];
+  return {
+    question: base.question,
+    options: dq.optionOrder.map((origIndex) => base.options[origIndex]),
+    correctIndex: dq.optionOrder.indexOf(base.correctIndex),
+    explanation: base.explanation,
+  };
+}
+
+export type QuizProgress = {
+  draw: DrawnQuestion[]; // empty until a quiz has actually been drawn (see Quiz.tsx)
+  answers: (number | null)[]; // parallel to `draw`; each is a displayed-option index
+};
+
+export function blankProgress(): QuizProgress {
+  return { draw: [], answers: [] };
 }
 
 export type QuizScore = {
@@ -288,15 +452,15 @@ export type QuizScore = {
   complete: boolean;
 };
 
-export function calcQuizScore(questions: QuizQuestion[], progress: QuizProgress): QuizScore {
+export function calcQuizScore(pool: QuizQuestion[], progress: QuizProgress): QuizScore {
   let correct = 0;
   let answered = 0;
-  questions.forEach((q, i) => {
+  progress.draw.forEach((dq, i) => {
     const a = progress.answers[i];
     if (a !== null && a !== undefined) {
       answered++;
-      if (a === q.correctIndex) correct++;
+      if (a === resolveQuestion(pool, dq).correctIndex) correct++;
     }
   });
-  return { correct, answered, total: questions.length, complete: answered === questions.length };
+  return { correct, answered, total: progress.draw.length, complete: progress.draw.length > 0 && answered === progress.draw.length };
 }
