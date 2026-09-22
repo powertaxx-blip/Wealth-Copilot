@@ -24,6 +24,7 @@ import { calcInvoiceTotals, INVOICES_STORAGE_KEY, type Invoice } from "@/lib/inv
 import { calcQuizScore, NONPROFIT_QUESTIONS, STANDARD_QUESTIONS, type QuizProgress } from "@/lib/quiz";
 import { estimateTax, type EstimatorInput } from "@/lib/tax";
 import { calcAllEmployeeCosts, EMPLOYEES_STORAGE_KEY, DEFAULT_EMPLOYEES_STATE, type EmployeesState } from "@/lib/employees";
+import { calcGrantTotals, GRANTS_STORAGE_KEY, DEFAULT_GRANTS_STATE, type GrantsState } from "@/lib/grants";
 import {
   runPaycheckCheckup,
   DEFAULT_PAYCHECK_CHECKUP,
@@ -62,6 +63,7 @@ export type SnapshotData = {
   debt: Section<{ totalBalance: number; debtCount: number }>;
   quiz: Section<{ correct: number; total: number; answered: number }>;
   employees: Section<{ headcount: number; totalCost: number }>;
+  grants: Section<{ totalRequested: number; totalAwarded: number; pendingCount: number }>;
   paycheckCheckup: Section<{ isRefund: boolean; federalGap: number; contributionGap: number }>;
 };
 
@@ -222,6 +224,14 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     };
   })();
 
+  // --- Grant Tracking ---
+  const grantsState = readJSON<GrantsState>(GRANTS_STORAGE_KEY, DEFAULT_GRANTS_STATE);
+  const grants = (() => {
+    if (grantsState.grants.length === 0) return { hasData: false, totalRequested: 0, totalAwarded: 0, pendingCount: 0 };
+    const t = calcGrantTotals(grantsState.grants);
+    return { hasData: true, totalRequested: t.totalRequested, totalAwarded: t.totalAwarded, pendingCount: t.pendingCount };
+  })();
+
   // --- Paycheck Checkup ---
   const pcInput = readJSON<PaycheckCheckupInput>(PAYCHECK_CHECKUP_STORAGE_KEY, DEFAULT_PAYCHECK_CHECKUP);
   const paycheckCheckup = (() => {
@@ -245,6 +255,7 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     debt,
     quiz,
     employees,
+    grants,
     paycheckCheckup,
   };
 }

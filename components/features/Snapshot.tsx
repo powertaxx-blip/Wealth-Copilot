@@ -274,6 +274,19 @@ export function Snapshot() {
         />
 
         <Tile
+          emoji="🎗️"
+          label="Grant Tracking"
+          href="/grants"
+          hasData={data.grants.hasData}
+          big={fmt(data.grants.totalAwarded)}
+          sub={
+            data.grants.hasData
+              ? `${fmt(data.grants.totalRequested)} requested, ${data.grants.pendingCount} pending decision`
+              : undefined
+          }
+        />
+
+        <Tile
           emoji="🩺"
           label="Paycheck Checkup"
           href="/paycheckcheckup"
