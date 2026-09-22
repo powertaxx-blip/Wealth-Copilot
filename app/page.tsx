@@ -168,7 +168,7 @@ const TOTAL_TRACKED = 12; // matches lib/snapshot.ts's SnapshotData — 12 secti
 
 export default function HomePage() {
   const router = useRouter();
-  const [orgType] = useOrgType();
+  const [orgType, setOrgType] = useOrgType();
   const nonprofit = orgType === "nonprofit";
   const [ownerName, setOwnerName] = useLocalStorageState<string>("wc.ownerName", "");
   const [editingName, setEditingName] = useState(false);
@@ -257,6 +257,32 @@ export default function HomePage() {
           <p className="mt-2 text-sm" style={{ color: "var(--ink-soft)" }}>
             Every tool below is live — no placeholders. Pick up where you left off, or jump straight to what you need.
           </p>
+          {/* Previously this switch only lived on Settings — buried enough
+              that "where's the toggle for nonprofits" came up more than
+              once. It's the single control that relabels a dozen panels
+              app-wide, so it belongs somewhere nobody has to go hunting
+              for it. The full explanation + Mentor's Note stays on
+              Settings (components/features/OrgTypeToggle.tsx) for anyone
+              who wants the "why"; this is just the fast path. */}
+          <div className="home-org-toggle">
+            <span className="home-org-toggle-label">Set up for:</span>
+            <button
+              type="button"
+              className={`home-org-toggle-btn${!nonprofit ? " active" : ""}`}
+              aria-pressed={!nonprofit}
+              onClick={() => setOrgType("standard")}
+            >
+              Individual / Business
+            </button>
+            <button
+              type="button"
+              className={`home-org-toggle-btn${nonprofit ? " active" : ""}`}
+              aria-pressed={nonprofit}
+              onClick={() => setOrgType("nonprofit")}
+            >
+              Nonprofit
+            </button>
+          </div>
         </div>
 
         <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", gap: 8, minWidth: 190 }}>

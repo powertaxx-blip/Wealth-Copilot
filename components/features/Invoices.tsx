@@ -178,6 +178,18 @@ export function Invoices() {
           </div>
 
           <h3 className="text-lg">{nonprofit ? "What Was Donated" : "Line Items"}</h3>
+          {/*
+            The four fixed-width columns (Qty/Rate/Amount/Remove) plus the
+            description field add up to more than a phone screen's width.
+            A plain <table> won't shrink below that, so on mobile it was
+            pushing the ENTIRE page out to ~555px wide instead of staying
+            at the 390px viewport — you'd have to scroll the whole page
+            sideways just to see the totals. Wrapping just the table in its
+            own horizontally-scrollable box keeps the rest of the page
+            (and the page width itself) correct on a phone; only this
+            table scrolls, the same way a wide spreadsheet would.
+          */}
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
           <table>
             <thead>
               <tr>
@@ -231,6 +243,7 @@ export function Invoices() {
               ))}
             </tbody>
           </table>
+          </div>
           <button className="btn ghost mt-2" onClick={addLineItem}>
             + Add {nonprofit ? "Donation Item" : "Line Item"}
           </button>

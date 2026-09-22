@@ -111,6 +111,7 @@ export function TopNav() {
     // pre-deploy QA audit caught this header going unreadable in dark mode
     // when it used the flipping tokens instead).
     <header style={{ background: "var(--brand-surface)", borderBottom: "1px solid var(--line)" }}>
+      <div className="brand-tagline-bar">Make Your Finance Visible and Predictable</div>
       <div ref={rootRef} className="mx-auto flex max-w-[1180px] flex-wrap items-center gap-3 px-6 py-3">
         <Link href="/" className="flex shrink-0 items-center gap-2.5" style={{ textDecoration: "none" }}>
           <BrandMark size={36} />
