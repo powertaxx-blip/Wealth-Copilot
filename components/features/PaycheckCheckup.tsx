@@ -137,7 +137,7 @@ export function PaycheckCheckup() {
         your withholding is action, assuming it&apos;s fine is not.
       </MentorNote>
 
-      <h3 className="text-lg">Your Job &amp; Pay</h3>
+      <h3 className="text-lg">About You</h3>
       <div className="grid gap-4 sm:grid-cols-2">
         <SelectField
           label="Filing status"
@@ -146,6 +146,17 @@ export function PaycheckCheckup() {
           options={STATUS_OPTIONS}
         />
         <NumberField label="Qualifying children under 17" value={state.kids} onChange={(v) => set("kids", v)} />
+      </div>
+
+      <h3 className="text-lg">
+        Your Pay Stub
+        <Tip text="Grab your most recent pay stub — everything in this section is printed on it, no W-4 needed yet." />
+      </h3>
+      <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
+        Start here — every number below is something you can read straight off a real pay stub, nothing to guess
+        at.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2">
         <SelectField
           label="Pay frequency"
           value={state.payFrequency}
@@ -163,12 +174,29 @@ export function PaycheckCheckup() {
             &quot;Fed Taxable Wages&quot; on your pay stub, not the same as gross pay.
           </p>
         </div>
+        <NumberField
+          label="Actual federal tax withheld THIS paycheck ($)"
+          value={state.actualFederalWithheldPerPeriod}
+          onChange={(v) => set("actualFederalWithheldPerPeriod", v)}
+        />
+        <SelectField label="State" value={state.state} onChange={(v) => set("state", v as USState)} options={US_STATES} />
+        <NumberField
+          label="Actual state tax withheld THIS paycheck ($)"
+          value={state.actualStateWithheldPerPeriod}
+          onChange={(v) => set("actualStateWithheldPerPeriod", v)}
+        />
       </div>
 
       <h3 className="text-lg">
-        Your Current Form W-4
+        Now Grab Your Form W-4
         <Tip text="These should match exactly what you filled in on the actual W-4 you gave your employer — this checkup runs the same math the IRS's own payroll formula does." />
       </h3>
+      <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
+        This is the form you filled out when you were hired (or last updated) — not something you look at every
+        payday, so it&apos;s fine if you need to dig it up from HR or onboarding paperwork. These five boxes are
+        what tell your employer how much to withhold in the first place, which is exactly what the numbers above
+        get checked against.
+      </p>
       <div className="grid gap-4 sm:grid-cols-2">
         <CheckboxField
           label="Step 2 box checked (multiple jobs / working spouse)"
@@ -194,21 +222,6 @@ export function PaycheckCheckup() {
           label="Step 4(c) — Extra withholding ($/paycheck)"
           value={state.step4cExtraWithholding}
           onChange={(v) => set("step4cExtraWithholding", v)}
-        />
-        <NumberField
-          label="Actual federal tax withheld THIS paycheck ($)"
-          value={state.actualFederalWithheldPerPeriod}
-          onChange={(v) => set("actualFederalWithheldPerPeriod", v)}
-        />
-      </div>
-
-      <h3 className="text-lg">State</h3>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <SelectField label="State" value={state.state} onChange={(v) => set("state", v as USState)} options={US_STATES} />
-        <NumberField
-          label="Actual state tax withheld THIS paycheck ($)"
-          value={state.actualStateWithheldPerPeriod}
-          onChange={(v) => set("actualStateWithheldPerPeriod", v)}
         />
       </div>
 
