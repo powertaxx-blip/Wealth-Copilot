@@ -272,6 +272,24 @@ export function Snapshot() {
           big={fmt(data.employees.totalCost)}
           sub={data.employees.hasData ? `${data.employees.headcount} employee${data.employees.headcount === 1 ? "" : "s"} on payroll` : undefined}
         />
+
+        <Tile
+          emoji="🩺"
+          label="Paycheck Checkup"
+          href="/paycheckcheckup"
+          hasData={data.paycheckCheckup.hasData}
+          big={
+            data.paycheckCheckup.hasData
+              ? `${fmt(data.paycheckCheckup.federalGap)} ${data.paycheckCheckup.isRefund ? "refund" : "owed"}`
+              : undefined
+          }
+          sub={
+            data.paycheckCheckup.hasData
+              ? `${fmt(data.paycheckCheckup.contributionGap)}/yr of 401(k)/IRA/HSA room unused`
+              : undefined
+          }
+          tone={data.paycheckCheckup.hasData ? (data.paycheckCheckup.isRefund ? "good" : "warning") : undefined}
+        />
       </div>
     </Card>
   );

@@ -59,8 +59,12 @@ const NAV: NavGroup[] = [
     ],
   },
   {
-    label: "Employees",
+    label: "Employers",
     items: [{ href: "/employees", emoji: "🧑‍💼", label: "Employees & Payroll" }],
+  },
+  {
+    label: "My Paycheck",
+    items: [{ href: "/paycheckcheckup", emoji: "🩺", label: "Paycheck Checkup" }],
   },
   {
     label: "Account",

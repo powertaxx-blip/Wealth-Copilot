@@ -60,6 +60,39 @@ export function SelectField({
   );
 }
 
+export function CheckboxField({
+  label,
+  checked,
+  onChange,
+  hint,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  hint?: string;
+}) {
+  const id = useId();
+  return (
+    <div className="field">
+      <label htmlFor={id} className="flex items-center gap-2" style={{ display: "flex", cursor: "pointer" }}>
+        <input
+          id={id}
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          style={{ width: "auto" }}
+        />
+        <span>{label}</span>
+      </label>
+      {hint && (
+        <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function TextField({
   label,
   value,
