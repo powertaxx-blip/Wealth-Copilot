@@ -23,6 +23,7 @@ import { calcMileageDeduction, MILEAGE_STORAGE_KEY, type Trip } from "@/lib/mile
 import { calcInvoiceTotals, INVOICES_STORAGE_KEY, type Invoice } from "@/lib/invoices";
 import { calcQuizScore, NONPROFIT_QUESTIONS, STANDARD_QUESTIONS, type QuizProgress } from "@/lib/quiz";
 import { estimateTax, type EstimatorInput } from "@/lib/tax";
+import { calcAllEmployeeCosts, EMPLOYEES_STORAGE_KEY, DEFAULT_EMPLOYEES_STATE, type EmployeesState } from "@/lib/employees";
 
 /** Reads and JSON-parses a localStorage key, falling back to `fallback`
  * on any failure (missing key, private browsing, malformed JSON, wrong
@@ -54,6 +55,7 @@ export type SnapshotData = {
   billing: Section<{ count: number; totalValue: number }>;
   debt: Section<{ totalBalance: number; debtCount: number }>;
   quiz: Section<{ correct: number; total: number; answered: number }>;
+  employees: Section<{ headcount: number; totalCost: number }>;
 };
 
 type BudgetState = {
@@ -201,5 +203,17 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     return { hasData: score.answered > 0, correct: score.correct, total: score.total, answered: score.answered };
   })();
 
-  return { budgeting, reserve, investments, breakeven, estimator, mileage, bizExpenses, scheduleC, balanceSheet, billing, debt, quiz };
+  // --- Employees & Payroll ---
+  const employeesState = readJSON<EmployeesState>(EMPLOYEES_STORAGE_KEY, DEFAULT_EMPLOYEES_STATE);
+  const employees = (() => {
+    if (employeesState.employees.length === 0) return { hasData: false, headcount: 0, totalCost: 0 };
+    const costs = calcAllEmployeeCosts(employeesState, nonprofit);
+    return {
+      hasData: true,
+      headcount: employeesState.employees.length,
+      totalCost: costs.reduce((s, c) => s + c.totalCost, 0),
+    };
+  })();
+
+  return { budgeting, reserve, investments, breakeven, estimator, mileage, bizExpenses, scheduleC, balanceSheet, billing, debt, quiz, employees };
 }

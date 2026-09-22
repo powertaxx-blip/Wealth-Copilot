@@ -144,6 +144,19 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    label: "Employees",
+    tiles: [
+      {
+        href: "/employees",
+        emoji: "🧑‍💼",
+        title: "Employees & Payroll",
+        desc: "Log who's on payroll and see the full employer cost.",
+        help: "Separate from Schedule C on purpose — a W-2 employee triggers employer payroll taxes (Social Security, Medicare, unemployment) that a 1099 contractor never does.",
+        done: (s) => s.employees.hasData,
+      },
+    ],
+  },
+  {
     label: "Learn",
     tiles: [
       { href: "/filing", emoji: "📋", title: "Filing Status Guide", desc: "Searchable reference for how filing status works." },
@@ -164,7 +177,7 @@ const GROUPS: Group[] = [
 const TRACKED_TILES: TrackedTile[] = GROUPS.flatMap((g) => g.tiles).filter(
   (t): t is TrackedTile => typeof t.done === "function"
 );
-const TOTAL_TRACKED = 12; // matches lib/snapshot.ts's SnapshotData — 12 sections
+const TOTAL_TRACKED = 13; // matches lib/snapshot.ts's SnapshotData — 13 sections
 
 export default function HomePage() {
   const router = useRouter();
@@ -194,6 +207,7 @@ export default function HomePage() {
         snapshot.billing.hasData,
         snapshot.debt.hasData,
         snapshot.quiz.hasData,
+        snapshot.employees.hasData,
       ].filter(Boolean).length
     : 0;
   const percent = Math.round((completedCount / TOTAL_TRACKED) * 100);

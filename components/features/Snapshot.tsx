@@ -263,6 +263,15 @@ export function Snapshot() {
           big={data.quiz.hasData ? `${data.quiz.correct} / ${data.quiz.total} correct` : undefined}
           sub={data.quiz.hasData ? `${data.quiz.answered} of ${data.quiz.total} answered this run` : undefined}
         />
+
+        <Tile
+          emoji="🧑‍💼"
+          label="Employees & Payroll"
+          href="/employees"
+          hasData={data.employees.hasData}
+          big={fmt(data.employees.totalCost)}
+          sub={data.employees.hasData ? `${data.employees.headcount} employee${data.employees.headcount === 1 ? "" : "s"} on payroll` : undefined}
+        />
       </div>
     </Card>
   );
