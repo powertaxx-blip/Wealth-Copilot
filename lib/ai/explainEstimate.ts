@@ -79,12 +79,24 @@ export type FetchLike = typeof fetch;
  */
 export async function callAnthropicWithRetry(
   userPrompt: string,
-  opts: { fetchImpl?: FetchLike; maxAttempts?: number; baseDelayMs?: number; apiKey?: string } = {}
+  opts: {
+    fetchImpl?: FetchLike;
+    maxAttempts?: number;
+    baseDelayMs?: number;
+    apiKey?: string;
+    // Added for lib/ai/explainScheduleC.ts: every other field here is
+    // generic (network/retry plumbing), but the system prompt is the one
+    // piece that's genuinely per-feature. Defaults to this file's own
+    // Tax Estimator SYSTEM_PROMPT, so every existing call site (none of
+    // which pass this) is byte-for-byte unchanged.
+    systemPrompt?: string;
+  } = {}
 ): Promise<string> {
   const fetchImpl = opts.fetchImpl ?? fetch;
   const maxAttempts = opts.maxAttempts ?? 3;
   const baseDelayMs = opts.baseDelayMs ?? 400;
   const apiKey = opts.apiKey ?? process.env.ANTHROPIC_API_KEY;
+  const systemPrompt = opts.systemPrompt ?? SYSTEM_PROMPT;
 
   if (!apiKey) {
     throw new AIProviderError("AI insight is not configured (missing ANTHROPIC_API_KEY)");
@@ -104,7 +116,7 @@ export async function callAnthropicWithRetry(
         body: JSON.stringify({
           model: MODEL,
           max_tokens: 400,
-          system: SYSTEM_PROMPT,
+          system: systemPrompt,
           messages: [{ role: "user", content: userPrompt }],
         }),
       });

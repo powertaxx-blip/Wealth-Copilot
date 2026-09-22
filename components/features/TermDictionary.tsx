@@ -4,17 +4,24 @@ import { useMemo, useState } from "react";
 
 /**
  * The Term Dictionary — a plain-English glossary of every technical term
- * that shows up on the Tax Estimator's results panel. The Tip component
- * already answers "what does EITC mean?" one word at a time; this answers
- * a bigger question the app hadn't addressed yet: "why should I care about
- * any of this?" Each entry is deliberately two parts — a definition, and a
+ * that shows up on a results panel. The Tip component already answers
+ * "what does EITC mean?" one word at a time; this answers a bigger
+ * question the app hadn't addressed yet: "why should I care about any of
+ * this?" Each entry is deliberately two parts — a definition, and a
  * separate "why it matters" line — because knowing what a term means and
  * knowing why it's worth understanding are two different kinds of
  * knowledge, and the second one is what actually changes a decision.
+ *
+ * Originally built Tax-Estimator-only with a hardcoded TERMS array. Now
+ * takes an optional `terms` prop (falling back to that same Tax Estimator
+ * list) so other panels — Schedule C first — can pass their own glossary
+ * through the identical search/expand UI instead of it staying stuck as a
+ * one-page feature. Every existing `<TermDictionary />` call (no props)
+ * keeps working exactly as before.
  */
-type Term = { term: string; definition: string; whyItMatters: string };
+export type Term = { term: string; definition: string; whyItMatters: string };
 
-const TERMS: Term[] = [
+export const ESTIMATOR_TERMS: Term[] = [
   {
     term: "Adjusted Gross Income (AGI)",
     definition: "Your total income minus a few specific adjustments — like half of your self-employment tax.",
@@ -90,22 +97,30 @@ const TERMS: Term[] = [
   },
 ];
 
-export function TermDictionary() {
+export function TermDictionary({
+  terms = ESTIMATOR_TERMS,
+  title = "Term Dictionary",
+  description = "Every technical term on this page, in plain English — and why each one is actually worth understanding, not just memorizing.",
+}: {
+  terms?: Term[];
+  title?: string;
+  description?: string;
+} = {}) {
   const [query, setQuery] = useState("");
   const [openTerm, setOpenTerm] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return TERMS;
-    return TERMS.filter((t) => t.term.toLowerCase().includes(q) || t.definition.toLowerCase().includes(q));
-  }, [query]);
+    if (!q) return terms;
+    return terms.filter((t) => t.term.toLowerCase().includes(q) || t.definition.toLowerCase().includes(q));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, terms]);
 
   return (
     <div className="card mt-4" style={{ boxShadow: "none", border: "1px solid var(--line)" }}>
-      <h3 className="mt-0 text-lg">Term Dictionary</h3>
+      <h3 className="mt-0 text-lg">{title}</h3>
       <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
-        Every technical term on this page, in plain English — and why each one is actually worth understanding, not
-        just memorizing.
+        {description}
       </p>
 
       <input
