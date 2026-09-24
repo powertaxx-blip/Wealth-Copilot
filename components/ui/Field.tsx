@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { Tip } from "./Tip";
 
 export function NumberField({
   label,
@@ -109,6 +110,40 @@ export function TextField({
     <div className="field">
       <label htmlFor={id}>{label}</label>
       <input id={id} type="text" value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+/** Multi-line counterpart to TextField, for long-form text like grant
+ * proposal sections. `tip` renders the same "i" badge (Tip) used inside
+ * result labels, next to the field's label. */
+export function TextAreaField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  rows = 5,
+  tip,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  rows?: number;
+  tip?: string;
+}) {
+  const id = useId();
+  return (
+    <div className="field">
+      <div className="flex items-center gap-2" style={{ display: "flex" }}>
+        <label htmlFor={id}>{label}</label>
+        {tip && (
+          <span style={{ marginBottom: "6px" }}>
+            <Tip text={tip} />
+          </span>
+        )}
+      </div>
+      <textarea id={id} value={value} rows={rows} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }

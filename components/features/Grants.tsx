@@ -6,6 +6,7 @@ import { MentorNote } from "@/components/ui/MentorNote";
 import { TextField, NumberField, SelectField } from "@/components/ui/Field";
 import { ResultBox } from "@/components/ui/ResultBox";
 import { TermDictionary, type Term } from "@/components/features/TermDictionary";
+import { GrantWritingTool } from "@/components/features/GrantWriting";
 import { fmt } from "@/lib/format";
 import { useLocalStorageState } from "@/lib/useLocalStorageState";
 import {
@@ -128,6 +129,7 @@ export function GrantTracking() {
   const totals = useMemo(() => calcGrantTotals(state.grants), [state.grants]);
 
   return (
+    <div className="flex flex-col gap-6">
     <Card
       title="Grant Tracking"
       lede="Every grant you're researching, drafting, or waiting on a decision for, in one pipeline — plus what's already come through. Sorted by whichever deadline is coming up next, so nothing slips past."
@@ -293,5 +295,11 @@ export function GrantTracking() {
         description="Every technical term on this page, in plain English — and why each one is actually worth understanding, not just memorizing."
       />
     </Card>
+
+    {/* Grant Writing Tool — same page, no separate nav item. Gets this
+        panel's own grants list so a grant added above appears there
+        immediately (see GrantWriting.tsx's header). */}
+    <GrantWritingTool grants={state.grants} />
+    </div>
   );
 }

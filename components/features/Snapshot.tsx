@@ -287,6 +287,25 @@ export function Snapshot() {
         />
 
         <Tile
+          emoji="✍️"
+          label="Grant Writing"
+          href="/grants#grant-writing"
+          hasData={data.grantWriting.hasData}
+          big={
+            data.grantWriting.hasData
+              ? `${data.grantWriting.sectionsWritten} section${data.grantWriting.sectionsWritten === 1 ? "" : "s"} written`
+              : undefined
+          }
+          sub={
+            data.grantWriting.hasData
+              ? `${data.grantWriting.proposalsStarted} proposal${data.grantWriting.proposalsStarted === 1 ? "" : "s"} started · Org profile ${
+                  data.grantWriting.orgProfileComplete ? "complete" : "in progress"
+                }`
+              : undefined
+          }
+        />
+
+        <Tile
           emoji="🩺"
           label="Paycheck Checkup"
           href="/paycheckcheckup"

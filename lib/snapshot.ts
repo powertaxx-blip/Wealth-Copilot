@@ -26,6 +26,12 @@ import { estimateTax, type EstimatorInput } from "@/lib/tax";
 import { calcAllEmployeeCosts, EMPLOYEES_STORAGE_KEY, DEFAULT_EMPLOYEES_STATE, type EmployeesState } from "@/lib/employees";
 import { calcGrantTotals, GRANTS_STORAGE_KEY, DEFAULT_GRANTS_STATE, type GrantsState } from "@/lib/grants";
 import {
+  calcGrantWritingTotals,
+  GRANT_WRITING_STORAGE_KEY,
+  DEFAULT_GRANT_WRITING_STATE,
+  type GrantWritingState,
+} from "@/lib/grantWriting";
+import {
   runPaycheckCheckup,
   DEFAULT_PAYCHECK_CHECKUP,
   PAYCHECK_CHECKUP_STORAGE_KEY,
@@ -64,6 +70,7 @@ export type SnapshotData = {
   quiz: Section<{ correct: number; total: number; answered: number }>;
   employees: Section<{ headcount: number; totalCost: number }>;
   grants: Section<{ totalRequested: number; totalAwarded: number; pendingCount: number }>;
+  grantWriting: Section<{ proposalsStarted: number; sectionsWritten: number; orgProfileComplete: boolean }>;
   paycheckCheckup: Section<{ isRefund: boolean; federalGap: number; contributionGap: number }>;
 };
 
@@ -232,6 +239,22 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     return { hasData: true, totalRequested: t.totalRequested, totalAwarded: t.totalAwarded, pendingCount: t.pendingCount };
   })();
 
+  // --- Grant Writing Tool (only proposals whose grant still exists in
+  // Grant Tracking count — see proposalsForGrants in lib/grantWriting.ts) ---
+  const writingState = readJSON<GrantWritingState>(GRANT_WRITING_STORAGE_KEY, DEFAULT_GRANT_WRITING_STATE);
+  const grantWriting = (() => {
+    const t = calcGrantWritingTotals(
+      { ...DEFAULT_GRANT_WRITING_STATE, ...writingState, proposals: writingState.proposals ?? {} },
+      grantsState.grants
+    );
+    return {
+      hasData: t.sectionsWritten > 0 || t.orgProfileStarted,
+      proposalsStarted: t.proposalsStarted,
+      sectionsWritten: t.sectionsWritten,
+      orgProfileComplete: t.orgProfileComplete,
+    };
+  })();
+
   // --- Paycheck Checkup ---
   const pcInput = readJSON<PaycheckCheckupInput>(PAYCHECK_CHECKUP_STORAGE_KEY, DEFAULT_PAYCHECK_CHECKUP);
   const paycheckCheckup = (() => {
@@ -256,6 +279,7 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     quiz,
     employees,
     grants,
+    grantWriting,
     paycheckCheckup,
   };
 }

@@ -167,6 +167,14 @@ const GROUPS: Group[] = [
         help: "Tracks a grant from first research through the funder's decision — separate from Invoices/Donation Receipts, which is for money already given.",
         done: (s) => s.grants.hasData,
       },
+      {
+        href: "/grants#grant-writing",
+        emoji: "✍️",
+        title: "Grant Writing",
+        desc: "Write proposal sections for any tracked grant, with AI first drafts.",
+        help: "Lives on the Grant Tracking page: fill in your organization's profile once, then draft each standard proposal section per grant — the AI only uses what you've entered and never invents numbers.",
+        done: (s) => s.grantWriting.hasData,
+      },
     ],
   },
   {
@@ -203,7 +211,7 @@ const GROUPS: Group[] = [
 const TRACKED_TILES: TrackedTile[] = GROUPS.flatMap((g) => g.tiles).filter(
   (t): t is TrackedTile => typeof t.done === "function"
 );
-const TOTAL_TRACKED = 15; // matches lib/snapshot.ts's SnapshotData — 15 sections
+const TOTAL_TRACKED = 16; // matches lib/snapshot.ts's SnapshotData — 16 sections
 
 export default function HomePage() {
   const router = useRouter();
@@ -235,6 +243,7 @@ export default function HomePage() {
         snapshot.quiz.hasData,
         snapshot.employees.hasData,
         snapshot.grants.hasData,
+        snapshot.grantWriting.hasData,
         snapshot.paycheckCheckup.hasData,
       ].filter(Boolean).length
     : 0;

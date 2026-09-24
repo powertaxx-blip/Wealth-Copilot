@@ -134,14 +134,20 @@ function truncate(s: string, max: number): string {
 /**
  * Every dollar amount and percentage in a string, normalized so "$8,000,"
  * and "$8000" compare equal ("$8000", "12.8%"). Bare numbers (7,000 miles,
- * Form 1040) aren't figures in this sense and are ignored.
+ * Form 1040) aren't figures in this sense and are ignored — unless
+ * `bareNumbers` is set, which the Grant Writing draft uses: there, an
+ * invented "serves 500 families" or "founded in 2009" is exactly the kind
+ * of made-up fact to catch, so every number counts ("#500", "#2009").
  */
-function extractFigures(s: string): string[] {
+function extractFigures(s: string, bareNumbers = false): string[] {
   const dollars = (s.match(/\$\s?\d[\d,]*(?:\.\d+)?/g) ?? []).map(
     (m) => "$" + Number(m.replace(/[$,\s]/g, "").replace(/\.$/, ""))
   );
   const percents = (s.match(/\d+(?:\.\d+)?\s?%/g) ?? []).map((m) => Number(m.replace(/[%\s]/g, "")) + "%");
-  return [...dollars, ...percents];
+  const numbers = bareNumbers
+    ? (s.match(/\d[\d,]*(?:\.\d+)?/g) ?? []).map((m) => "#" + Number(m.replace(/,/g, "").replace(/\.$/, "")))
+    : [];
+  return [...dollars, ...percents, ...numbers];
 }
 
 /**
@@ -151,9 +157,19 @@ function extractFigures(s: string): string[] {
  * summary sentence, containing a dollar amount or percentage that isn't in
  * the prompt the model was actually sent is dropped rather than shown.
  */
-function ungroundedFigures(text: string, allowed: ReadonlySet<string>): string[] {
-  return extractFigures(text).filter((f) => !allowed.has(f));
+function ungroundedFigures(text: string, allowed: ReadonlySet<string>, bareNumbers: boolean): string[] {
+  return extractFigures(text, bareNumbers).filter((f) => !allowed.has(f));
 }
+
+/** Per-caller limits. The defaults are the Tax Estimator / Schedule C
+ * explain panels' original caps; Grant Writing passes a much larger
+ * summary cap (a proposal section is several paragraphs, not 2-3
+ * sentences) and turns on bare-number grounding. */
+export type SanitizeOptions = {
+  maxSummaryChars?: number;
+  maxTips?: number;
+  groundBareNumbers?: boolean;
+};
 
 /**
  * Output sanitization. The model is instructed (see buildPrompt) to return
@@ -162,7 +178,10 @@ function ungroundedFigures(text: string, allowed: ReadonlySet<string>): string[]
  * passing through here first: a strict shape check, then per-field
  * cleanup (strip markup, enforce length caps, cap tip count).
  */
-export function sanitizeExplainResponse(raw: unknown, groundingPrompt?: string): ExplainResponse {
+export function sanitizeExplainResponse(raw: unknown, groundingPrompt?: string, opts: SanitizeOptions = {}): ExplainResponse {
+  const maxSummaryChars = opts.maxSummaryChars ?? MAX_SUMMARY_CHARS;
+  const maxTips = opts.maxTips ?? MAX_TIPS;
+  const bareNumbers = opts.groundBareNumbers ?? false;
   let parsed: unknown = raw;
   if (typeof raw === "string") {
     // The prompt forbids markdown fences, but models still sometimes wrap
@@ -189,14 +208,20 @@ export function sanitizeExplainResponse(raw: unknown, groundingPrompt?: string):
   let rawSummary = body.summary;
   let rawTips = body.tips as string[];
   if (groundingPrompt !== undefined) {
-    const allowed = new Set(extractFigures(groundingPrompt));
+    const allowed = new Set(extractFigures(groundingPrompt, bareNumbers));
     const dropped: string[] = [];
     const keep = (text: string) => {
-      const bad = ungroundedFigures(text, allowed);
+      const bad = ungroundedFigures(text, allowed, bareNumbers);
       dropped.push(...bad);
       return bad.length === 0;
     };
-    rawSummary = rawSummary.split(/(?<=[.!?])\s+/).filter(keep).join(" ");
+    // Sentence by sentence within each paragraph, so a multi-paragraph
+    // summary (a Grant Writing draft) keeps its paragraph breaks.
+    rawSummary = rawSummary
+      .split(/\n\s*\n/)
+      .map((para) => para.split(/(?<=[.!?])\s+/).filter(keep).join(" "))
+      .filter((para) => para.trim().length > 0)
+      .join("\n\n");
     rawTips = rawTips.filter(keep);
     if (dropped.length > 0) {
       console.warn("[sanitizeExplainResponse] dropped text with ungrounded figures:", dropped.join(", "));
@@ -206,9 +231,9 @@ export function sanitizeExplainResponse(raw: unknown, groundingPrompt?: string):
     }
   }
 
-  const summary = truncate(stripUnsafeMarkup(rawSummary), MAX_SUMMARY_CHARS);
+  const summary = truncate(stripUnsafeMarkup(rawSummary), maxSummaryChars);
   const tips = rawTips
-    .slice(0, MAX_TIPS)
+    .slice(0, maxTips)
     .map((t) => truncate(stripUnsafeMarkup(t), MAX_TIP_CHARS))
     .filter((t) => t.length > 0);
 

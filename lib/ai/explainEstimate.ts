@@ -90,6 +90,10 @@ export async function callAnthropicWithRetry(
     // Tax Estimator SYSTEM_PROMPT, so every existing call site (none of
     // which pass this) is byte-for-byte unchanged.
     systemPrompt?: string;
+    // Added for lib/ai/draftGrantSection.ts: a proposal-section draft runs
+    // several paragraphs, well past the explain panels' 400-token budget.
+    // Defaults to 400, so existing call sites are unchanged.
+    maxTokens?: number;
   } = {}
 ): Promise<string> {
   const fetchImpl = opts.fetchImpl ?? fetch;
@@ -97,6 +101,7 @@ export async function callAnthropicWithRetry(
   const baseDelayMs = opts.baseDelayMs ?? 400;
   const apiKey = opts.apiKey ?? process.env.ANTHROPIC_API_KEY;
   const systemPrompt = opts.systemPrompt ?? SYSTEM_PROMPT;
+  const maxTokens = opts.maxTokens ?? 400;
 
   if (!apiKey) {
     throw new AIProviderError("AI insight is not configured (missing ANTHROPIC_API_KEY)");
@@ -115,7 +120,7 @@ export async function callAnthropicWithRetry(
         },
         body: JSON.stringify({
           model: MODEL,
-          max_tokens: 400,
+          max_tokens: maxTokens,
           system: systemPrompt,
           messages: [{ role: "user", content: userPrompt }],
         }),
