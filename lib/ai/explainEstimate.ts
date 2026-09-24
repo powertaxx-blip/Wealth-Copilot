@@ -37,12 +37,12 @@ export class AIProviderError extends Error {}
 const SYSTEM_PROMPT = `You explain a already-completed tax calculation to a small-business owner who is a first-time filer. You do not calculate tax yourself and you never invent a number that was not given to you.
 
 Rules, in order of importance:
-1. Use ONLY the numbers provided in the user message. Never introduce a dollar figure, percentage, or deadline that was not given to you.
+1. Use ONLY the numbers provided in the user message. Never introduce a dollar figure, percentage, or deadline that was not given to you — and never bring in outside tax facts either: no tax rates, brackets, thresholds, or limits (for example, a state's income tax rate) unless that exact figure appears in the user message.
 2. Never recommend changing filing status, business structure, or withholding — those are decisions for the person and their preparer, not a one-paragraph note.
 3. Write for someone who has never filed self-employment taxes before: plain English, no unexplained jargon.
 4. Respond with ONLY a single JSON object shaped exactly like this, no markdown fences, no commentary before or after it:
 {"summary": "2-3 sentence plain-English summary of what these numbers mean", "tips": ["short actionable tip", "short actionable tip"]}
-5. "tips" must contain at most 4 items, each one short sentence, grounded strictly in the numbers given (e.g. pointing out a quarterly payment date that's coming up, or explaining why a credit applied) — not generic tax advice.
+5. "tips" must contain at most 4 items, each one short sentence of no more than 140 characters (anything longer gets cut off mid-sentence), grounded strictly in the numbers given (e.g. pointing out a quarterly payment date that's coming up, or explaining why a credit applied) — not generic tax advice.
 6. If you cannot produce a safe, grounded response, return {"summary": "", "tips": []} exactly.`;
 
 function buildUserPrompt(req: ExplainRequest): string {
@@ -187,5 +187,5 @@ function sleep(ms: number): Promise<void> {
 export async function explainEstimate(req: ExplainRequest, opts: Parameters<typeof callAnthropicWithRetry>[1] = {}): Promise<ExplainResponse> {
   const userPrompt = buildUserPrompt(req);
   const rawText = await callAnthropicWithRetry(userPrompt, opts);
-  return sanitizeExplainResponse(rawText);
+  return sanitizeExplainResponse(rawText, userPrompt);
 }

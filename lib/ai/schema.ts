@@ -132,17 +132,44 @@ function truncate(s: string, max: number): string {
 }
 
 /**
+ * Every dollar amount and percentage in a string, normalized so "$8,000,"
+ * and "$8000" compare equal ("$8000", "12.8%"). Bare numbers (7,000 miles,
+ * Form 1040) aren't figures in this sense and are ignored.
+ */
+function extractFigures(s: string): string[] {
+  const dollars = (s.match(/\$\s?\d[\d,]*(?:\.\d+)?/g) ?? []).map(
+    (m) => "$" + Number(m.replace(/[$,\s]/g, "").replace(/\.$/, ""))
+  );
+  const percents = (s.match(/\d+(?:\.\d+)?\s?%/g) ?? []).map((m) => Number(m.replace(/[%\s]/g, "")) + "%");
+  return [...dollars, ...percents];
+}
+
+/**
+ * Grounding check. The prompt forbids outside figures (a state's tax rate,
+ * the SE tax rate, the $600 1099 threshold), but in testing the model still
+ * slipped one in now and then — so it's enforced here too: any tip, or any
+ * summary sentence, containing a dollar amount or percentage that isn't in
+ * the prompt the model was actually sent is dropped rather than shown.
+ */
+function ungroundedFigures(text: string, allowed: ReadonlySet<string>): string[] {
+  return extractFigures(text).filter((f) => !allowed.has(f));
+}
+
+/**
  * Output sanitization. The model is instructed (see buildPrompt) to return
  * only JSON matching ExplainResponse — but "instructed to" is not the same
  * as "guaranteed to," so nothing from the model reaches the UI without
  * passing through here first: a strict shape check, then per-field
  * cleanup (strip markup, enforce length caps, cap tip count).
  */
-export function sanitizeExplainResponse(raw: unknown): ExplainResponse {
+export function sanitizeExplainResponse(raw: unknown, groundingPrompt?: string): ExplainResponse {
   let parsed: unknown = raw;
   if (typeof raw === "string") {
+    // The prompt forbids markdown fences, but models still sometimes wrap
+    // the JSON in ```json ... ``` — unwrap that one shape before parsing.
+    const fenced = raw.trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
     try {
-      parsed = JSON.parse(raw);
+      parsed = JSON.parse(fenced ? fenced[1] : raw);
     } catch {
       throw new OutputValidationError("Model response was not valid JSON");
     }
@@ -159,8 +186,28 @@ export function sanitizeExplainResponse(raw: unknown): ExplainResponse {
     throw new OutputValidationError('Model response missing a "tips" array of strings');
   }
 
-  const summary = truncate(stripUnsafeMarkup(body.summary), MAX_SUMMARY_CHARS);
-  const tips = (body.tips as string[])
+  let rawSummary = body.summary;
+  let rawTips = body.tips as string[];
+  if (groundingPrompt !== undefined) {
+    const allowed = new Set(extractFigures(groundingPrompt));
+    const dropped: string[] = [];
+    const keep = (text: string) => {
+      const bad = ungroundedFigures(text, allowed);
+      dropped.push(...bad);
+      return bad.length === 0;
+    };
+    rawSummary = rawSummary.split(/(?<=[.!?])\s+/).filter(keep).join(" ");
+    rawTips = rawTips.filter(keep);
+    if (dropped.length > 0) {
+      console.warn("[sanitizeExplainResponse] dropped text with ungrounded figures:", dropped.join(", "));
+    }
+    if (rawSummary.trim().length === 0) {
+      throw new OutputValidationError("Model summary contained only ungrounded figures");
+    }
+  }
+
+  const summary = truncate(stripUnsafeMarkup(rawSummary), MAX_SUMMARY_CHARS);
+  const tips = rawTips
     .slice(0, MAX_TIPS)
     .map((t) => truncate(stripUnsafeMarkup(t), MAX_TIP_CHARS))
     .filter((t) => t.length > 0);
