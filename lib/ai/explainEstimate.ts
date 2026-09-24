@@ -163,8 +163,18 @@ export async function callAnthropicWithRetry(
   }
 
   throw new AIProviderError(
-    `AI provider unavailable after ${maxAttempts} attempts: ${lastError instanceof Error ? lastError.message : String(lastError)}`
+    `AI provider unavailable after ${maxAttempts} attempts: ${redactSecret(lastError instanceof Error ? lastError.message : String(lastError), apiKey)}`
   );
+}
+
+/**
+ * A fetch() error message can echo request header values back verbatim —
+ * e.g. Headers.append rejecting a malformed key quotes the whole value —
+ * and this message ends up in server logs. Scrub the configured key, plus
+ * anything else shaped like an Anthropic key, before it goes anywhere.
+ */
+function redactSecret(message: string, apiKey: string): string {
+  return message.split(apiKey).join("[redacted]").replace(/sk-ant-[A-Za-z0-9_-]+/g, "sk-ant-[redacted]");
 }
 
 function backoffDelay(attempt: number, baseDelayMs: number): number {
