@@ -9,17 +9,29 @@ export function NumberField({
   onChange,
   min = 0,
   step,
+  tip,
 }: {
   label: string;
   value: number;
   onChange: (v: number) => void;
   min?: number;
   step?: number;
+  /** Optional "i" badge next to the label — same as TextAreaField's. */
+  tip?: string;
 }) {
   const id = useId();
   return (
     <div className="field">
-      <label htmlFor={id}>{label}</label>
+      {tip ? (
+        <div className="flex items-center gap-2" style={{ display: "flex" }}>
+          <label htmlFor={id}>{label}</label>
+          <span style={{ marginBottom: "6px" }}>
+            <Tip text={tip} />
+          </span>
+        </div>
+      ) : (
+        <label htmlFor={id}>{label}</label>
+      )}
       <input
         id={id}
         type="number"

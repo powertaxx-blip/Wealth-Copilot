@@ -61,6 +61,14 @@ const GROUPS: Group[] = [
         done: (s) => s.reserve.hasData,
       },
       {
+        href: "/financialhealth",
+        emoji: "🧭",
+        title: "Financial Health",
+        desc: "Days of cash on hand and months of operating reserve.",
+        help: "Two cushions read together: how many days your cash could cover expenses if money stopped coming in, and how many months your set-aside reserve covers.",
+        done: (s) => s.financialHealth.hasData,
+      },
+      {
         href: "/investment",
         emoji: "💹",
         title: "Investment Fund",
@@ -219,7 +227,7 @@ const GROUPS: Group[] = [
 const TRACKED_TILES: TrackedTile[] = GROUPS.flatMap((g) => g.tiles).filter(
   (t): t is TrackedTile => typeof t.done === "function"
 );
-const TOTAL_TRACKED = 17; // matches lib/snapshot.ts's SnapshotData — 17 sections
+const TOTAL_TRACKED = 18; // matches lib/snapshot.ts's SnapshotData — 18 sections
 
 export default function HomePage() {
   const router = useRouter();
@@ -253,6 +261,7 @@ export default function HomePage() {
         snapshot.grants.hasData,
         snapshot.grantWriting.hasData,
         snapshot.donorRetention.hasData,
+        snapshot.financialHealth.hasData,
         snapshot.paycheckCheckup.hasData,
       ].filter(Boolean).length
     : 0;

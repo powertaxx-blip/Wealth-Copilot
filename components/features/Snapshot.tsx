@@ -149,6 +149,20 @@ export function Snapshot() {
         />
 
         <Tile
+          emoji="🧭"
+          label="Financial Health"
+          href="/financialhealth"
+          hasData={data.financialHealth.hasData}
+          big={data.financialHealth.hasData ? `${data.financialHealth.daysCash.toLocaleString()} days cash` : undefined}
+          sub={
+            data.financialHealth.hasData
+              ? `${data.financialHealth.reserveMonths.toFixed(1)} months reserve · ${data.financialHealth.reserveLabel}`
+              : undefined
+          }
+          tone={data.financialHealth.hasData ? data.financialHealth.tone : undefined}
+        />
+
+        <Tile
           emoji="💹"
           label="Investment Fund"
           href="/investment"

@@ -38,6 +38,13 @@ import {
   type DonorRetentionInput,
 } from "@/lib/donorRetention";
 import {
+  calcFinancialHealth,
+  worseTone,
+  FINANCIAL_HEALTH_STORAGE_KEY,
+  DEFAULT_FINANCIAL_HEALTH,
+  type FinancialHealthInput,
+} from "@/lib/financialHealth";
+import {
   runPaycheckCheckup,
   DEFAULT_PAYCHECK_CHECKUP,
   PAYCHECK_CHECKUP_STORAGE_KEY,
@@ -78,6 +85,7 @@ export type SnapshotData = {
   grants: Section<{ totalRequested: number; totalAwarded: number; pendingCount: number }>;
   grantWriting: Section<{ proposalsStarted: number; sectionsWritten: number; orgProfileComplete: boolean }>;
   donorRetention: Section<{ ratePct: number; label: string; tone: "good" | "warning" }>;
+  financialHealth: Section<{ daysCash: number; reserveMonths: number; reserveLabel: string; tone: "good" | "warning" | "critical" }>;
   paycheckCheckup: Section<{ isRefund: boolean; federalGap: number; contributionGap: number }>;
 };
 
@@ -272,6 +280,24 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     return { hasData: true, ratePct: dr.ratePct, label: dr.label, tone: dr.tone };
   })();
 
+  // --- Financial Health (counts once there are annual expenses to
+  // measure against AND some cash or reserve entered — expenses alone
+  // would show a misleading "0 days, critical") ---
+  const fhInput = { ...DEFAULT_FINANCIAL_HEALTH, ...readJSON<Partial<FinancialHealthInput>>(FINANCIAL_HEALTH_STORAGE_KEY, {}) };
+  const financialHealth = (() => {
+    const fh = calcFinancialHealth(fhInput);
+    if (fh.status !== "ok" || (fhInput.cash <= 0 && fhInput.reserveFunds <= 0)) {
+      return { hasData: false, daysCash: 0, reserveMonths: 0, reserveLabel: "", tone: "critical" as const };
+    }
+    return {
+      hasData: true,
+      daysCash: fh.daysCash,
+      reserveMonths: fh.reserveMonths,
+      reserveLabel: fh.reserveLabel,
+      tone: worseTone(fh.daysTone, fh.reserveTone),
+    };
+  })();
+
   // --- Paycheck Checkup ---
   const pcInput = readJSON<PaycheckCheckupInput>(PAYCHECK_CHECKUP_STORAGE_KEY, DEFAULT_PAYCHECK_CHECKUP);
   const paycheckCheckup = (() => {
@@ -298,6 +324,7 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     grants,
     grantWriting,
     donorRetention,
+    financialHealth,
     paycheckCheckup,
   };
 }
