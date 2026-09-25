@@ -232,6 +232,22 @@ export function Snapshot() {
         />
 
         <Tile
+          emoji="🗂️"
+          label="990 Compliance"
+          href="/form990"
+          hasData={data.form990.hasData}
+          big={
+            data.form990.hasData
+              ? data.form990.passed
+                ? "Deadline passed"
+                : `${data.form990.daysRemaining.toLocaleString()} day${data.form990.daysRemaining === 1 ? "" : "s"} left`
+              : undefined
+          }
+          sub={data.form990.hasData ? data.form990.formLabel : undefined}
+          tone={data.form990.hasData ? data.form990.tone : undefined}
+        />
+
+        <Tile
           emoji="⚖️"
           label={nonprofit ? "Statement of Financial Position" : "Balance Sheet"}
           href="/balance"

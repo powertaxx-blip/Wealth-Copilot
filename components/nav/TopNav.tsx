@@ -55,6 +55,7 @@ const NAV: NavGroup[] = [
       { href: "/mileage", emoji: "🚗", label: "Mileage Tracker" },
       { href: "/bizexpenses", emoji: "💼", label: "Business Expenses" },
       { href: "/schedulec", emoji: "🧾", label: "Schedule C" },
+      { href: "/form990", emoji: "🗂️", label: "990 Compliance" },
       { href: "/balance", emoji: "⚖️", label: "Balance Sheet", nonprofitLabel: "Statement of Financial Position" },
       { href: "/invoices", emoji: "🧾", label: "Invoices & AR", nonprofitLabel: "Donation Receipts" },
     ],

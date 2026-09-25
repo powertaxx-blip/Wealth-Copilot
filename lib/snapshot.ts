@@ -44,6 +44,7 @@ import {
   DEFAULT_FINANCIAL_HEALTH,
   type FinancialHealthInput,
 } from "@/lib/financialHealth";
+import { calcForm990, FORM_990_STORAGE_KEY, DEFAULT_FORM_990, type Form990Input } from "@/lib/form990";
 import {
   runPaycheckCheckup,
   DEFAULT_PAYCHECK_CHECKUP,
@@ -86,6 +87,7 @@ export type SnapshotData = {
   grantWriting: Section<{ proposalsStarted: number; sectionsWritten: number; orgProfileComplete: boolean }>;
   donorRetention: Section<{ ratePct: number; label: string; tone: "good" | "warning" }>;
   financialHealth: Section<{ daysCash: number; reserveMonths: number; reserveLabel: string; tone: "good" | "warning" | "critical" }>;
+  form990: Section<{ formLabel: string; passed: boolean; daysRemaining: number; label: string; tone: "good" | "warning" | "critical" }>;
   paycheckCheckup: Section<{ isRefund: boolean; federalGap: number; contributionGap: number }>;
 };
 
@@ -298,6 +300,20 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     };
   })();
 
+  // --- 990 Compliance (counts once a valid fiscal year end is entered —
+  // the deadline is the point of the panel; the form alone isn't) ---
+  const f990Input = { ...DEFAULT_FORM_990, ...readJSON<Partial<Form990Input>>(FORM_990_STORAGE_KEY, {}) };
+  const form990 = (() => {
+    const f = calcForm990(f990Input);
+    if (f.deadline.status === "passed") {
+      return { hasData: true, formLabel: f.formLabel, passed: true, daysRemaining: 0, label: "Deadline passed", tone: "critical" as const };
+    }
+    if (f.deadline.status === "upcoming") {
+      return { hasData: true, formLabel: f.formLabel, passed: false, daysRemaining: f.deadline.daysRemaining, label: f.deadline.label, tone: f.deadline.tone };
+    }
+    return { hasData: false, formLabel: "", passed: false, daysRemaining: 0, label: "", tone: "good" as const };
+  })();
+
   // --- Paycheck Checkup ---
   const pcInput = readJSON<PaycheckCheckupInput>(PAYCHECK_CHECKUP_STORAGE_KEY, DEFAULT_PAYCHECK_CHECKUP);
   const paycheckCheckup = (() => {
@@ -325,6 +341,7 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     grantWriting,
     donorRetention,
     financialHealth,
+    form990,
     paycheckCheckup,
   };
 }

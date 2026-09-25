@@ -126,6 +126,36 @@ export function TextField({
   );
 }
 
+/** Native date picker. Value is "YYYY-MM-DD" (or "" when empty) — the
+ * same string format the text-based date fields elsewhere already use,
+ * so saved values stay compatible. */
+export function DateField({
+  label,
+  value,
+  onChange,
+  tip,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  tip?: string;
+}) {
+  const id = useId();
+  return (
+    <div className="field">
+      <div className="flex items-center gap-2" style={{ display: "flex" }}>
+        <label htmlFor={id}>{label}</label>
+        {tip && (
+          <span style={{ marginBottom: "6px" }}>
+            <Tip text={tip} />
+          </span>
+        )}
+      </div>
+      <input id={id} type="date" value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
 /** Multi-line counterpart to TextField, for long-form text like grant
  * proposal sections. `tip` renders the same "i" badge (Tip) used inside
  * result labels, next to the field's label. */

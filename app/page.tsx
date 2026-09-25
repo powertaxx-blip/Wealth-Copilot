@@ -122,6 +122,14 @@ const GROUPS: Group[] = [
         done: (s) => s.scheduleC.hasData,
       },
       {
+        href: "/form990",
+        emoji: "🗂️",
+        title: "990 Compliance",
+        desc: "Which Form 990 you file, when it's due, and days left.",
+        help: "Tax-exempt organizations file a version of Form 990 with the IRS every year — which one depends on gross receipts and assets, and it's due the 15th day of the 5th month after the fiscal year ends.",
+        done: (s) => s.form990.hasData,
+      },
+      {
         href: "/balance",
         emoji: "⚖️",
         title: "Balance Sheet",
@@ -227,7 +235,7 @@ const GROUPS: Group[] = [
 const TRACKED_TILES: TrackedTile[] = GROUPS.flatMap((g) => g.tiles).filter(
   (t): t is TrackedTile => typeof t.done === "function"
 );
-const TOTAL_TRACKED = 18; // matches lib/snapshot.ts's SnapshotData — 18 sections
+const TOTAL_TRACKED = 19; // matches lib/snapshot.ts's SnapshotData — 19 sections
 
 export default function HomePage() {
   const router = useRouter();
@@ -262,6 +270,7 @@ export default function HomePage() {
         snapshot.grantWriting.hasData,
         snapshot.donorRetention.hasData,
         snapshot.financialHealth.hasData,
+        snapshot.form990.hasData,
         snapshot.paycheckCheckup.hasData,
       ].filter(Boolean).length
     : 0;
