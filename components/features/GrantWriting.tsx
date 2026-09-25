@@ -284,8 +284,9 @@ export function GrantWritingTool({ grants }: { grants: Grant[] }) {
         lede="Write each grant's proposal one standard section at a time — with your organization's details filled out once and reused everywhere, and an AI first draft for any section when you're staring at a blank page."
       >
         <MentorNote>
-          &ldquo;Write the vision, and make it plain upon tables, that he may run that readeth it.&rdquo; (Habakkuk 2:2) —
-          a funder reading your proposal is doing exactly that: reading quickly, often alongside dozens of others. The
+          &ldquo;Omit needless words&rdquo; is the most famous line in Strunk and White&apos;s <i>The Elements of Style</i>,
+          and it&apos;s especially good advice for a grant proposal: a funder is reading quickly, often alongside dozens
+          of others. The
           clearer and plainer each section says what you&apos;ll do and why it matters, the easier you make it for
           someone to say yes.
         </MentorNote>
