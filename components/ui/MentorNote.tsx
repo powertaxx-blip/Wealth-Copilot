@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { POWER_THOUGHTS, POWER_THOUGHT_SOURCE, drawPowerThought } from "@/lib/powerThoughts";
 
 /**
  * The Mentor's Note card (see app/globals.css's ".mentor" comment for the
@@ -20,6 +21,20 @@ import { useState, type ReactNode } from "react";
  */
 export function MentorNote({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  // Power Thought rotation: underneath every panel's own note, one line
+  // from the app author's book (lib/powerThoughts.ts). Drawn the first
+  // time this note is opened on a visit — not on mount — so a note nobody
+  // opens doesn't use up a line from the deck, and so the random pick
+  // happens client-side in an event handler (no hydration mismatch, and
+  // no double draw from React Strict Mode's doubled effects in dev). It
+  // then stays the same for the rest of the visit; the next visit draws
+  // a fresh one.
+  const [thoughtIndex, setThoughtIndex] = useState<number | null>(null);
+
+  function toggle() {
+    if (!open && thoughtIndex === null) setThoughtIndex(drawPowerThought());
+    setOpen((o) => !o);
+  }
 
   return (
     <div className="mentor" data-open={open}>
@@ -27,7 +42,7 @@ export function MentorNote({ children }: { children: ReactNode }) {
         <button
           type="button"
           className="mentor-toggle"
-          onClick={() => setOpen((o) => !o)}
+          onClick={toggle}
           aria-expanded={open}
         >
           <span className="eyebrow" style={{ marginBottom: 0 }}>
@@ -35,7 +50,20 @@ export function MentorNote({ children }: { children: ReactNode }) {
           </span>
           <span className="mentor-toggle-hint">{open ? "Hide ▲" : "Tap to read ▼"}</span>
         </button>
-        {open && <div className="mentor-body">{children}</div>}
+        {open && (
+          <div className="mentor-body">
+            {children}
+            {thoughtIndex !== null && (
+              <div className="mentor-power-thought">
+                <span className="eyebrow">Power Thought</span>
+                &ldquo;{POWER_THOUGHTS[thoughtIndex]}&rdquo;
+                <span className="mentor-power-thought-credit">
+                  — {POWER_THOUGHT_SOURCE.author}, <i>{POWER_THOUGHT_SOURCE.title}</i>
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

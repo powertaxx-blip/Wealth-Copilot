@@ -199,6 +199,23 @@ h3 {
 .mentor-body {
   margin-top: 6px;
 }
+/* The rotating Power Thought under each Mentor's Note (see
+   lib/powerThoughts.ts) — separated from the panel's own note by a thin
+   gold rule, same eyebrow label style, credit line a step quieter. */
+.mentor-power-thought {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--gold);
+  border-top-color: color-mix(in srgb, var(--gold) 40%, transparent);
+  font-style: italic;
+}
+.mentor-power-thought-credit {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-style: normal;
+  opacity: 0.8;
+}
 
 /* Plain informational callout — EITC/filing-status notices, the AI
    Insight panel's error fallback, anything that's a system message
