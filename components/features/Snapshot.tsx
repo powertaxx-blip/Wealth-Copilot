@@ -306,6 +306,16 @@ export function Snapshot() {
         />
 
         <Tile
+          emoji="🤝"
+          label="Donor Retention"
+          href="/donorretention"
+          hasData={data.donorRetention.hasData}
+          big={data.donorRetention.hasData ? `${data.donorRetention.ratePct.toFixed(1)}% retained` : undefined}
+          sub={data.donorRetention.hasData ? data.donorRetention.label : undefined}
+          tone={data.donorRetention.hasData ? data.donorRetention.tone : undefined}
+        />
+
+        <Tile
           emoji="🩺"
           label="Paycheck Checkup"
           href="/paycheckcheckup"

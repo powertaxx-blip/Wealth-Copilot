@@ -32,6 +32,12 @@ import {
   type GrantWritingState,
 } from "@/lib/grantWriting";
 import {
+  calcDonorRetention,
+  DONOR_RETENTION_STORAGE_KEY,
+  DEFAULT_DONOR_RETENTION,
+  type DonorRetentionInput,
+} from "@/lib/donorRetention";
+import {
   runPaycheckCheckup,
   DEFAULT_PAYCHECK_CHECKUP,
   PAYCHECK_CHECKUP_STORAGE_KEY,
@@ -71,6 +77,7 @@ export type SnapshotData = {
   employees: Section<{ headcount: number; totalCost: number }>;
   grants: Section<{ totalRequested: number; totalAwarded: number; pendingCount: number }>;
   grantWriting: Section<{ proposalsStarted: number; sectionsWritten: number; orgProfileComplete: boolean }>;
+  donorRetention: Section<{ ratePct: number; label: string; tone: "good" | "warning" }>;
   paycheckCheckup: Section<{ isRefund: boolean; federalGap: number; contributionGap: number }>;
 };
 
@@ -255,6 +262,16 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     };
   })();
 
+  // --- Donor Retention Rate (only counts once it produces a valid rate —
+  // an "invalid" entry, more returning donors than last year's total,
+  // stays "not started" rather than showing a nonsense percentage) ---
+  const drInput = readJSON<DonorRetentionInput>(DONOR_RETENTION_STORAGE_KEY, DEFAULT_DONOR_RETENTION);
+  const donorRetention = (() => {
+    const dr = calcDonorRetention({ ...DEFAULT_DONOR_RETENTION, ...drInput });
+    if (dr.status !== "ok") return { hasData: false, ratePct: 0, label: "", tone: "warning" as const };
+    return { hasData: true, ratePct: dr.ratePct, label: dr.label, tone: dr.tone };
+  })();
+
   // --- Paycheck Checkup ---
   const pcInput = readJSON<PaycheckCheckupInput>(PAYCHECK_CHECKUP_STORAGE_KEY, DEFAULT_PAYCHECK_CHECKUP);
   const paycheckCheckup = (() => {
@@ -280,6 +297,7 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     employees,
     grants,
     grantWriting,
+    donorRetention,
     paycheckCheckup,
   };
 }

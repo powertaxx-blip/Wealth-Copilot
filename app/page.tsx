@@ -175,6 +175,14 @@ const GROUPS: Group[] = [
         help: "Lives on the Grant Tracking page: fill in your organization's profile once, then draft each standard proposal section per grant — the AI only uses what you've entered and never invents numbers.",
         done: (s) => s.grantWriting.hasData,
       },
+      {
+        href: "/donorretention",
+        emoji: "🤝",
+        title: "Donor Retention",
+        desc: "See what share of last year's donors gave again this year.",
+        help: "Retention rate = returning donors ÷ last year's donors. Nonprofits average roughly 40–45%; new donors are tracked for context but don't count toward the rate.",
+        done: (s) => s.donorRetention.hasData,
+      },
     ],
   },
   {
@@ -211,7 +219,7 @@ const GROUPS: Group[] = [
 const TRACKED_TILES: TrackedTile[] = GROUPS.flatMap((g) => g.tiles).filter(
   (t): t is TrackedTile => typeof t.done === "function"
 );
-const TOTAL_TRACKED = 16; // matches lib/snapshot.ts's SnapshotData — 16 sections
+const TOTAL_TRACKED = 17; // matches lib/snapshot.ts's SnapshotData — 17 sections
 
 export default function HomePage() {
   const router = useRouter();
@@ -244,6 +252,7 @@ export default function HomePage() {
         snapshot.employees.hasData,
         snapshot.grants.hasData,
         snapshot.grantWriting.hasData,
+        snapshot.donorRetention.hasData,
         snapshot.paycheckCheckup.hasData,
       ].filter(Boolean).length
     : 0;

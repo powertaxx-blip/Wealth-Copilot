@@ -64,7 +64,10 @@ const NAV: NavGroup[] = [
   },
   {
     label: "Fundraising",
-    items: [{ href: "/grants", emoji: "🎗️", label: "Grant Tracking" }],
+    items: [
+      { href: "/grants", emoji: "🎗️", label: "Grant Tracking" },
+      { href: "/donorretention", emoji: "🤝", label: "Donor Retention" },
+    ],
   },
   {
     label: "My Paycheck",
