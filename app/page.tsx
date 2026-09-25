@@ -69,6 +69,14 @@ const GROUPS: Group[] = [
         done: (s) => s.financialHealth.hasData,
       },
       {
+        href: "/credit",
+        emoji: "💳",
+        title: "Credit Health",
+        desc: "Log your personal and business credit scores over time.",
+        help: "Look up your score wherever you already check it and record it here — this page never connects to a credit bureau or asks for an SSN or tax ID.",
+        done: (s) => s.credit.hasData,
+      },
+      {
         href: "/investment",
         emoji: "💹",
         title: "Investment Fund",
@@ -235,7 +243,7 @@ const GROUPS: Group[] = [
 const TRACKED_TILES: TrackedTile[] = GROUPS.flatMap((g) => g.tiles).filter(
   (t): t is TrackedTile => typeof t.done === "function"
 );
-const TOTAL_TRACKED = 19; // matches lib/snapshot.ts's SnapshotData — 19 sections
+const TOTAL_TRACKED = 20; // matches lib/snapshot.ts's SnapshotData — 20 sections
 
 export default function HomePage() {
   const router = useRouter();
@@ -271,6 +279,7 @@ export default function HomePage() {
         snapshot.donorRetention.hasData,
         snapshot.financialHealth.hasData,
         snapshot.form990.hasData,
+        snapshot.credit.hasData,
         snapshot.paycheckCheckup.hasData,
       ].filter(Boolean).length
     : 0;

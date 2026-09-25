@@ -44,6 +44,7 @@ const NAV: NavGroup[] = [
       { href: "/budgeting", emoji: "💰", label: "Budgeting" },
       { href: "/emergency", emoji: "🛟", label: "Emergency Fund", nonprofitLabel: "Operating Reserve" },
       { href: "/financialhealth", emoji: "🧭", label: "Financial Health" },
+      { href: "/credit", emoji: "💳", label: "Credit Health" },
       { href: "/investment", emoji: "💹", label: "Investment Fund" },
       { href: "/breakeven", emoji: "📈", label: "Break-Even & Pricing" },
     ],

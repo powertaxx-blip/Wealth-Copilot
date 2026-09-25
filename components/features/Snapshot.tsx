@@ -25,6 +25,18 @@ import { readSnapshotData, type SnapshotData } from "@/lib/snapshot";
  * is a point-in-time rollup, not a live dashboard.
  */
 
+/** Credit tile's second line: the headline score's rating (with its
+ * change since the last entry), plus the business score when the
+ * headline is the personal one. */
+function creditSub(c: SnapshotData["credit"]): string | undefined {
+  if (!c.hasData) return undefined;
+  const withChange = (s: { label: string; change: number | null }) =>
+    s.change ? `${s.label} (${s.change > 0 ? "+" : ""}${s.change})` : s.label;
+  if (c.personal && c.business) return `${withChange(c.personal)} · Business ${c.business.score} (${c.business.label})`;
+  if (c.personal) return withChange(c.personal);
+  return c.business ? withChange(c.business) : undefined;
+}
+
 function Tile({
   emoji,
   label,
@@ -160,6 +172,22 @@ export function Snapshot() {
               : undefined
           }
           tone={data.financialHealth.hasData ? data.financialHealth.tone : undefined}
+        />
+
+        <Tile
+          emoji="💳"
+          label="Credit Health"
+          href="/credit"
+          hasData={data.credit.hasData}
+          big={
+            data.credit.personal
+              ? `${data.credit.personal.score} personal`
+              : data.credit.business
+                ? `${data.credit.business.score} business`
+                : undefined
+          }
+          sub={creditSub(data.credit)}
+          tone={data.credit.personal?.tone ?? data.credit.business?.tone}
         />
 
         <Tile

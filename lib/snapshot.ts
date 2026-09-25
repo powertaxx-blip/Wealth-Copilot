@@ -46,6 +46,14 @@ import {
 } from "@/lib/financialHealth";
 import { calcForm990, FORM_990_STORAGE_KEY, DEFAULT_FORM_990, type Form990Input } from "@/lib/form990";
 import {
+  summarize,
+  validEntries,
+  PERSONAL_SCALE,
+  BUSINESS_SCALE,
+  CREDIT_HEALTH_STORAGE_KEY,
+  type CreditHealthState,
+} from "@/lib/creditHealth";
+import {
   runPaycheckCheckup,
   DEFAULT_PAYCHECK_CHECKUP,
   PAYCHECK_CHECKUP_STORAGE_KEY,
@@ -88,6 +96,10 @@ export type SnapshotData = {
   donorRetention: Section<{ ratePct: number; label: string; tone: "good" | "warning" }>;
   financialHealth: Section<{ daysCash: number; reserveMonths: number; reserveLabel: string; tone: "good" | "warning" | "critical" }>;
   form990: Section<{ formLabel: string; passed: boolean; daysRemaining: number; label: string; tone: "good" | "warning" | "critical" }>;
+  credit: Section<{
+    personal: { score: number; label: string; tone: "good" | "warning" | "critical"; change: number | null } | null;
+    business: { score: number; label: string; tone: "good" | "warning" | "critical"; change: number | null } | null;
+  }>;
   paycheckCheckup: Section<{ isRefund: boolean; federalGap: number; contributionGap: number }>;
 };
 
@@ -314,6 +326,20 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     return { hasData: false, formLabel: "", passed: false, daysRemaining: 0, label: "", tone: "good" as const };
   })();
 
+  // --- Credit Health Tracker (either section with at least one entry
+  // counts; each side reports its own latest score independently) ---
+  const creditState = readJSON<Partial<CreditHealthState>>(CREDIT_HEALTH_STORAGE_KEY, {});
+  const credit = (() => {
+    const side = (entries: unknown, scale: typeof PERSONAL_SCALE) => {
+      const s = summarize(scale, validEntries(entries));
+      if (s.status !== "ok") return null;
+      return { score: s.latest.score, label: s.label, tone: s.tone, change: s.change ? s.change.points : null };
+    };
+    const personal = side(creditState.personal, PERSONAL_SCALE);
+    const business = side(creditState.business, BUSINESS_SCALE);
+    return { hasData: personal !== null || business !== null, personal, business };
+  })();
+
   // --- Paycheck Checkup ---
   const pcInput = readJSON<PaycheckCheckupInput>(PAYCHECK_CHECKUP_STORAGE_KEY, DEFAULT_PAYCHECK_CHECKUP);
   const paycheckCheckup = (() => {
@@ -342,6 +368,7 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     donorRetention,
     financialHealth,
     form990,
+    credit,
     paycheckCheckup,
   };
 }
