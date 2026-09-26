@@ -9,7 +9,7 @@ import { Tip } from "@/components/ui/Tip";
 import { useLocalStorageState } from "@/lib/useLocalStorageState";
 import { useOrgType } from "@/lib/orgType";
 import { readSnapshotData, type SnapshotData } from "@/lib/snapshot";
-import { exportAllData, importAllData } from "@/lib/dataBackup";
+import { BackupCard } from "@/components/features/BackupCard";
 
 /**
  * Redesigned Home page (see the design-critique conversation this shipped
@@ -269,7 +269,6 @@ export default function HomePage() {
   const [ownerName, setOwnerName] = useLocalStorageState<string>("wc.ownerName", "");
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
-  const [importMsg, setImportMsg] = useState<string | null>(null);
 
   const [snapshot, setSnapshot] = useState<SnapshotData | null>(null);
   useEffect(() => {
@@ -418,6 +417,8 @@ export default function HomePage() {
         )}
       </div>
 
+      <BackupCard />
+
       {!allStepsDone && (
         <div className="home-checklist">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -494,43 +495,6 @@ export default function HomePage() {
           </div>
         </div>
       ))}
-
-      <div className="home-databar">
-        <div>
-          <strong className="text-[13.5px]">Your data</strong>
-          <p>Everything you enter stays in this browser only — nothing is uploaded. Keep a copy just in case.</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" className="btn ghost" onClick={() => exportAllData()}>
-            ⬇ Download my data
-          </button>
-          <label className="btn ghost" style={{ cursor: "pointer" }}>
-            ⬆ Restore from file
-            <input
-              type="file"
-              accept="application/json"
-              style={{ display: "none" }}
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                e.target.value = "";
-                if (!file) return;
-                const result = await importAllData(file);
-                setImportMsg(
-                  result.error ?? `Restored ${result.restoredKeys} saved item${result.restoredKeys === 1 ? "" : "s"}. Reloading…`
-                );
-                if (!result.error) {
-                  setTimeout(() => window.location.reload(), 1200);
-                }
-              }}
-            />
-          </label>
-        </div>
-        {importMsg && (
-          <p className="w-full text-xs" style={{ color: "var(--muted)" }}>
-            {importMsg}
-          </p>
-        )}
-      </div>
     </div>
   );
 }

@@ -17,6 +17,33 @@
 
 export const BACKUP_KEY_PREFIX = "wc.";
 
+/** When this browser last downloaded a backup — shown on Home's backup
+ * card. Deliberately NOT under the "wc." prefix: it describes this
+ * device, not the user's data, so it's never written into a backup file
+ * (and restoring a file can't make an old backup look recent). */
+export const LAST_BACKUP_KEY = "wc-meta.lastBackupAt";
+
+export function readLastBackupAt(): string | null {
+  try {
+    return window.localStorage.getItem(LAST_BACKUP_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** How many "wc." keys are saved — i.e. how much a backup would contain. */
+export function countBackupKeys(): number {
+  try {
+    let n = 0;
+    for (let i = 0; i < window.localStorage.length; i++) {
+      if (window.localStorage.key(i)?.startsWith(BACKUP_KEY_PREFIX)) n++;
+    }
+    return n;
+  } catch {
+    return 0;
+  }
+}
+
 function readAllBackupKeys(): Record<string, unknown> {
   const data: Record<string, unknown> = {};
   for (let i = 0; i < window.localStorage.length; i++) {
@@ -54,6 +81,11 @@ export function exportAllData(): void {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+  try {
+    window.localStorage.setItem(LAST_BACKUP_KEY, payload.exportedAt);
+  } catch {
+    // storage unavailable — the download itself still happened
+  }
 }
 
 export type ImportResult = { restoredKeys: number; error?: string };
