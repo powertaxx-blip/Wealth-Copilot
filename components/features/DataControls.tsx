@@ -1,61 +1,140 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { exportAllData } from "@/lib/dataBackup";
+import { useOrgType } from "@/lib/orgType";
+import { exportAllData, importAllData, clearAllData, listBackupKeys, describeSavedData } from "@/lib/dataBackup";
 
 /**
- * The one thing the original app's footer did ("Clear my saved data"),
- * plus something it didn't: an export-to-file button, so a client can
- * back up their own numbers before clearing them. Real Settings page,
- * not a stub — this is the first page in the rebuild that didn't exist
- * in the original single-file prototype at all.
+ * Settings → Your Data. Lists what's saved on this device by friendly
+ * name (describeSavedData — internal settings like the theme are left
+ * out of the list but still exported), and offers the same Download /
+ * Restore as Home's backup card (lib/dataBackup.ts), plus Clear.
+ *
+ * Clear asks first, in the page rather than a browser pop-up, and puts a
+ * "Download a backup first" button right in that confirmation — clearing
+ * can't be undone, and the backup file is the only way back.
  */
 export function DataControls() {
-  const [keys, setKeys] = useState<string[]>([]);
-
-  function refresh() {
-    const found: string[] = [];
-    for (let i = 0; i < window.localStorage.length; i++) {
-      const k = window.localStorage.key(i);
-      if (k && k.startsWith("wc.")) found.push(k);
-    }
-    setKeys(found.sort());
-  }
+  const [orgType] = useOrgType();
+  const nonprofit = orgType === "nonprofit";
+  const [keys, setKeys] = useState<string[] | null>(null);
+  const [confirmingClear, setConfirmingClear] = useState(false);
+  const [backedUpNow, setBackedUpNow] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    refresh();
+    setKeys(listBackupKeys());
   }, []);
 
-  // Same export as Home's "Download My Data" (lib/dataBackup.ts), so both
-  // buttons produce the same file — one that Restore reads back exactly,
-  // including plain-text settings like Nonprofit Mode.
-  function exportData() {
+  const names = keys ? describeSavedData(keys, nonprofit) : [];
+  const hasAnything = (keys?.length ?? 0) > 0;
+
+  function download() {
     exportAllData();
+    setBackedUpNow(true);
+    setMessage("Downloaded. Check your Downloads folder, then keep the file somewhere safe.");
   }
 
-  function clearAll() {
-    if (!window.confirm("Clear all saved Wealth Copilot data on this device? This can't be undone.")) return;
-    keys.forEach((k) => window.localStorage.removeItem(k));
-    refresh();
+  function clearEverything() {
+    clearAllData();
+    setConfirmingClear(false);
+    setMessage("All saved data was cleared from this browser. Reloading…");
+    // Reload so every setting on the page (Nonprofit Mode, theme) reflects the reset.
+    setTimeout(() => window.location.reload(), 1000);
   }
+
+  if (keys === null) return null;
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
-          {keys.length === 0
-            ? "Nothing saved on this device yet."
-            : `${keys.length} saved item${keys.length === 1 ? "" : "s"} on this device: ${keys.join(", ")}`}
-        </p>
+      <div className="text-sm" style={{ color: "var(--ink-soft)" }}>
+        {names.length === 0 ? (
+          "Nothing saved on this device yet."
+        ) : (
+          <>
+            Saved on this device:
+            <ul className="mt-2 flex flex-wrap gap-2" style={{ listStyle: "none", padding: 0, margin: "8px 0 0" }}>
+              {names.map((n) => (
+                <li key={n} className="status-pill neutral" style={{ color: "var(--ink-soft)" }}>
+                  {n}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </div>
+
       <div className="flex flex-wrap gap-3">
-        <button className="btn ghost" onClick={exportData} disabled={keys.length === 0}>
+        <button className="btn ghost" onClick={download} disabled={!hasAnything}>
           ⬇ Export my data (.json)
         </button>
-        <button className="btn ghost" onClick={clearAll} disabled={keys.length === 0}>
-          🗑 Clear my saved data
-        </button>
+        <label className="btn ghost" style={{ cursor: "pointer" }}>
+          ⬆ Restore from backup
+          <input
+            type="file"
+            accept="application/json,.json"
+            style={{ display: "none" }}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              const result = await importAllData(file);
+              setMessage(result.error ?? `Restored ${result.restoredKeys} saved item${result.restoredKeys === 1 ? "" : "s"}. Reloading…`);
+              if (!result.error) setTimeout(() => window.location.reload(), 1200);
+            }}
+          />
+        </label>
+        {!confirmingClear && (
+          <button
+            className="btn ghost"
+            onClick={() => {
+              setConfirmingClear(true);
+              setBackedUpNow(false);
+              setMessage(null);
+            }}
+            disabled={!hasAnything}
+          >
+            🗑 Clear my saved data
+          </button>
+        )}
       </div>
+
+      {confirmingClear && (
+        <div className="note" role="alertdialog" aria-label="Confirm clearing saved data" style={{ borderLeftColor: "var(--status-critical)", margin: 0 }}>
+          <b>Clear everything saved in this browser?</b> This permanently deletes all of your Wealth Copilot data on this
+          device — every tool, plus your settings — and it can&apos;t be undone.{" "}
+          {backedUpNow ? (
+            <>Your backup file has been downloaded, so you can restore it later with &ldquo;Restore from backup.&rdquo;</>
+          ) : (
+            <>
+              <b>Download a backup first</b> so you can bring it back later with &ldquo;Restore from backup.&rdquo;
+            </>
+          )}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {!backedUpNow && (
+              <button className="btn gold" onClick={download}>
+                ⬇ Download a backup first
+              </button>
+            )}
+            <button
+              className="btn ghost"
+              onClick={clearEverything}
+              style={{ color: "var(--status-critical)", borderColor: "var(--status-critical)" }}
+            >
+              {backedUpNow ? "Clear my saved data" : "Clear without a backup"}
+            </button>
+            <button className="btn ghost" onClick={() => setConfirmingClear(false)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {message && (
+        <p className="text-sm" role="status" style={{ color: "var(--ink-soft)" }}>
+          {message}
+        </p>
+      )}
     </div>
   );
 }

@@ -1,5 +1,16 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { exportAllData, restoreFromText, countBackupKeys, readLastBackupAt, LAST_BACKUP_KEY, BACKUP_KEY_PREFIX } from "@/lib/dataBackup";
+import fs from "node:fs";
+import path from "node:path";
+import {
+  exportAllData,
+  restoreFromText,
+  countBackupKeys,
+  readLastBackupAt,
+  describeSavedData,
+  clearAllData,
+  LAST_BACKUP_KEY,
+  BACKUP_KEY_PREFIX,
+} from "@/lib/dataBackup";
 
 // A minimal in-memory localStorage plus just enough of `document` to
 // capture the file exportAllData hands to the browser to download.
@@ -106,5 +117,63 @@ describe("Download My Data (backup export)", () => {
     const at = readLastBackupAt();
     expect(at).not.toBe(null);
     expect(Math.abs(Date.now() - new Date(at!).getTime())).toBeLessThan(5000);
+  });
+});
+
+describe("Settings → Your Data list", () => {
+  it("shows friendly names, groups related keys, and hides internal ones", () => {
+    const keys = ["wc.budgeting", "wc.debts", "wc.debts.extra", "wc.debts.strategy", "wc.creditHealth", "wc.form990", "wc.grants", "wc.theme", "wc.welcomeVideoSeen", "wc.orgType", "wc.powerThoughtDeck"];
+    expect(describeSavedData(keys, false)).toEqual(["Budgeting", "Credit Health", "Debt Payoff Planner", "Form 990", "Grants"]);
+  });
+
+  it("uses Nonprofit Mode names where the app does", () => {
+    expect(describeSavedData(["wc.emergency", "wc.invoices"], true)).toEqual(["Donation Receipts", "Operating Reserve"]);
+  });
+
+  it("shows an unknown future key as 'Other saved data', never as a raw key", () => {
+    expect(describeSavedData(["wc.somethingNew", "wc.grants"], false)).toEqual(["Grants", "Other saved data"]);
+  });
+
+  it("has a friendly name (or is marked internal) for every storage key the app's code uses", () => {
+    const found = new Set<string>();
+    const walk = (dir: string) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const p = path.join(dir, entry.name);
+        if (entry.isDirectory()) walk(p);
+        else if (/\.(ts|tsx)$/.test(entry.name)) {
+          for (const m of fs.readFileSync(p, "utf8").matchAll(/["'](wc\.[A-Za-z0-9.]+)["']/g)) found.add(m[1]);
+        }
+      }
+    };
+    for (const d of ["app", "components", "lib"]) walk(path.resolve(__dirname, "..", d));
+    found.delete("wc."); // the prefix constant itself
+    found.delete("wc.xxx"); // an example in a code comment, not a real key
+    expect(found.size).toBeGreaterThan(25);
+    const unnamed = [...found].filter((k) => describeSavedData([k], false).includes("Other saved data"));
+    expect(unnamed, `give these a name in SAVED_DATA_LABELS: ${unnamed.join(", ")}`).toEqual([]);
+  });
+});
+
+describe("Clear my saved data", () => {
+  it("removes every wc. key but leaves other sites' keys and the last-backup marker", () => {
+    const store = new Map<string, string>([
+      ["wc.grants", "{}"],
+      ["wc.orgType", "nonprofit"],
+      ["someone-else", "x"],
+      [LAST_BACKUP_KEY, "2026-09-26T00:00:00.000Z"],
+    ]);
+    (globalThis as Record<string, unknown>).window = {
+      localStorage: {
+        get length() {
+          return store.size;
+        },
+        key: (i: number) => [...store.keys()][i] ?? null,
+        getItem: (k: string) => store.get(k) ?? null,
+        setItem: (k: string, v: string) => void store.set(k, v),
+        removeItem: (k: string) => void store.delete(k),
+      },
+    };
+    clearAllData();
+    expect([...store.keys()].sort()).toEqual([LAST_BACKUP_KEY, "someone-else"].sort());
   });
 });

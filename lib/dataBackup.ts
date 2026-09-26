@@ -31,6 +31,95 @@ export function readLastBackupAt(): string | null {
   }
 }
 
+/**
+ * Friendly names for Settings → Your Data, which lists what's saved
+ * without showing raw keys. Several keys can share one name (the debt
+ * planner keeps three). `null` marks internal keys — settings shown
+ * elsewhere on Settings, or bookkeeping the person never sees — which are
+ * left out of the list but are still in every export. A key that isn't
+ * mapped here (a tool added later) shows as "Other saved data" rather
+ * than as a raw key.
+ */
+const SAVED_DATA_LABELS: Record<string, { label: string; nonprofitLabel?: string } | null> = {
+  "wc.budgeting": { label: "Budgeting" },
+  "wc.debts": { label: "Debt Payoff Planner" },
+  "wc.debts.extra": { label: "Debt Payoff Planner" },
+  "wc.debts.strategy": { label: "Debt Payoff Planner" },
+  "wc.cashFlow": { label: "Cash-Flow Forecast" },
+  "wc.emergency": { label: "Emergency Fund", nonprofitLabel: "Operating Reserve" },
+  "wc.financialHealth": { label: "Financial Health" },
+  "wc.creditHealth": { label: "Credit Health" },
+  "wc.investment.holdings": { label: "Investment Fund" },
+  "wc.investment.projector": { label: "Investment Fund" },
+  "wc.investment.retirement": { label: "Investment Fund" },
+  "wc.breakeven": { label: "Break-Even & Pricing" },
+  "wc.estimator": { label: "Tax Estimator" },
+  "wc.mileage": { label: "Mileage Tracker" },
+  "wc.bizexpenses": { label: "Business Expenses" },
+  "wc.schedulec": { label: "Schedule C" },
+  "wc.form990": { label: "Form 990" },
+  "wc.balance": { label: "Balance Sheet", nonprofitLabel: "Statement of Financial Position" },
+  "wc.invoices": { label: "Invoices", nonprofitLabel: "Donation Receipts" },
+  "wc.invoices.draft": { label: "Invoices", nonprofitLabel: "Donation Receipts" },
+  "wc.employees": { label: "Employees & Payroll" },
+  "wc.contractors": { label: "1099 Contractors" },
+  "wc.grants": { label: "Grants" },
+  "wc.grantWriting": { label: "Grant Proposals" },
+  "wc.donorRetention": { label: "Donor Retention" },
+  "wc.paycheckcheckup": { label: "Paycheck Checkup" },
+  "wc.scorp": { label: "Filing Status Guide calculators" },
+  "wc.ubit": { label: "Filing Status Guide calculators" },
+  "wc.estatePlanning.bequest": { label: "Wills & Estates" },
+  "wc.estatePlanning.exposure": { label: "Wills & Estates" },
+  "wc.quiz.standard": { label: "Financial IQ Quiz" },
+  "wc.quiz.nonprofit": { label: "Financial IQ Quiz" },
+  "wc.ownerName": { label: "Your name" },
+  // Internal — kept in exports, hidden from the list.
+  "wc.orgType": null, // shown as its own setting on Settings
+  "wc.theme": null, // shown as its own setting on Settings
+  "wc.welcomeVideoSeen": null,
+  "wc.powerThoughtDeck": null,
+  "wc.schedulec.netProfit": null, // derived from Schedule C, which is listed
+};
+
+/** The friendly, de-duplicated, sorted names for a set of saved keys,
+ * with internal keys left out. */
+export function describeSavedData(keys: string[], nonprofit: boolean): string[] {
+  const names = new Set<string>();
+  for (const key of keys) {
+    if (!key.startsWith(BACKUP_KEY_PREFIX)) continue;
+    const entry = SAVED_DATA_LABELS[key];
+    if (entry === null) continue; // internal
+    if (entry === undefined) {
+      names.add("Other saved data");
+      continue;
+    }
+    names.add((nonprofit && entry.nonprofitLabel) || entry.label);
+  }
+  return [...names].sort((a, b) => (a === "Other saved data" ? 1 : b === "Other saved data" ? -1 : a.localeCompare(b)));
+}
+
+/** Every "wc." key currently saved, sorted. */
+export function listBackupKeys(): string[] {
+  const keys: string[] = [];
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (k?.startsWith(BACKUP_KEY_PREFIX)) keys.push(k);
+    }
+  } catch {
+    // storage unavailable — nothing to list
+  }
+  return keys.sort();
+}
+
+/** Deletes every "wc." key (the "Clear my saved data" action). The
+ * last-backup marker is left alone: it describes this device's downloads,
+ * not the person's data. */
+export function clearAllData(): void {
+  for (const k of listBackupKeys()) window.localStorage.removeItem(k);
+}
+
 /** How many "wc." keys are saved — i.e. how much a backup would contain. */
 export function countBackupKeys(): number {
   try {
