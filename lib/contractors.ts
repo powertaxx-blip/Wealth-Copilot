@@ -42,7 +42,18 @@ export function defaultContractorsState(now: Date = new Date()): ContractorsStat
 }
 export const DEFAULT_CONTRACTORS_STATE: ContractorsState = defaultContractorsState();
 
-/** The 1099-NEC filing threshold for payments made in `taxYear`. */
+/**
+ * The 1099-NEC filing threshold for payments made in `taxYear`.
+ *
+ * Source: the One Big Beautiful Bill Act (signed July 4, 2025) raised the
+ * threshold from $600 to $2,000 for payments made after December 31, 2025,
+ * with inflation adjustments starting after 2026. So:
+ *   - payments made in 2025 or earlier → $600 (the long-standing rule)
+ *   - payments made in 2026            → $2,000
+ *   - 2027 onward                      → $2,000 until the IRS publishes the
+ *     inflation-adjusted figure, with a note telling the user to check it
+ * The threshold is chosen by the tax year the user selects on the page.
+ */
 export function nec1099Threshold(taxYear: number): { amount: number; note: string | null } {
   if (taxYear <= 2025) return { amount: 600, note: null };
   if (taxYear === 2026) return { amount: 2000, note: null };
