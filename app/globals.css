@@ -88,6 +88,20 @@ body {
   line-height: 1.55;
 }
 
+/* Manrope's standard ligatures include one that turns "(c)" into "©" — so
+   every "501(c)(3)" in the app rendered as "501©(3)". The source text is
+   correct; the font was swapping the glyphs. Turning off common
+   ligatures (the only visible cost: "fi"/"fl" pairs aren't joined) fixes
+   it everywhere at once, including anything a user types. Form controls
+   don't inherit font settings by default, so they're listed explicitly. */
+body,
+input,
+textarea,
+select,
+button {
+  font-variant-ligatures: no-common-ligatures;
+}
+
 h1,
 h2,
 h3 {
