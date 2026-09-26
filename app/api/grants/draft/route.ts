@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkAIRateLimit, rateLimitMessage } from "@/lib/ai/rateLimit";
 import { sanitizeGrantDraftRequest, GrantDraftInputValidationError } from "@/lib/ai/grantDraftSchema";
 import { OutputValidationError } from "@/lib/ai/schema";
 import { draftGrantSection } from "@/lib/ai/draftGrantSection";
@@ -11,6 +12,16 @@ import { AIProviderError } from "@/lib/ai/explainEstimate";
  * error" posture.
  */
 export async function POST(req: Request) {
+  // Checked before anything else — every request that gets past this
+  // point can cost an Anthropic API call. See lib/ai/rateLimit.ts.
+  const limit = await checkAIRateLimit(req);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: rateLimitMessage(limit) },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();

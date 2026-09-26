@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkAIRateLimit, rateLimitMessage } from "@/lib/ai/rateLimit";
 import { sanitizeExplainScheduleCRequest, ScheduleCInputValidationError } from "@/lib/ai/scheduleCSchema";
 import { OutputValidationError } from "@/lib/ai/schema";
 import { explainScheduleC } from "@/lib/ai/explainScheduleC";
@@ -12,6 +13,16 @@ import { AIProviderError } from "@/lib/ai/explainEstimate";
  * request/response contract stays simple and independently testable.
  */
 export async function POST(req: Request) {
+  // Checked before anything else — every request that gets past this
+  // point can cost an Anthropic API call. See lib/ai/rateLimit.ts.
+  const limit = await checkAIRateLimit(req);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: rateLimitMessage(limit) },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();
