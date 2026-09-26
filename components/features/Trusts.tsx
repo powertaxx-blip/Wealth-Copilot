@@ -98,7 +98,7 @@ export function Trusts() {
             <thead>
               <tr>
                 <th>Trust Type</th>
-                <th>What It's For</th>
+                <th>What It&apos;s For</th>
               </tr>
             </thead>
             <tbody>
@@ -116,7 +116,7 @@ export function Trusts() {
               </tr>
               <tr>
                 <td>Testamentary Trust</td>
-                <td>Created by a will; only comes into existence at death — often used to hold a minor's inheritance until a set age</td>
+                <td>Created by a will; only comes into existence at death — often used to hold a minor&apos;s inheritance until a set age</td>
               </tr>
             </tbody>
           </table>
@@ -142,7 +142,7 @@ export function Trusts() {
             <RefCard title="Charitable Lead Trust (CLT)">
               <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
                 The mirror image of a CRT: the organization receives an income stream first, for a set term of
-                years, and whatever remains afterward passes to the donor's heirs. Often used specifically to
+                years, and whatever remains afterward passes to the donor&apos;s heirs. Often used specifically to
                 transfer wealth to family with reduced gift or estate tax.
               </p>
             </RefCard>
@@ -151,7 +151,7 @@ export function Trusts() {
                 A donor holding highly appreciated, low-basis stock or property can face a large capital gains bill
                 selling it outright. Routing it through a CRT instead avoids that immediate tax, replaces the asset
                 with an income stream, and still leaves a substantial gift behind — a combination a simple
-                donation or bequest can't offer on its own.
+                donation or bequest can&apos;t offer on its own.
               </p>
             </RefCard>
             <RefCard title="Your Organization's Actual Role">
@@ -167,7 +167,7 @@ export function Trusts() {
           <div className="note mt-2">
             A donor-advised fund is a simpler, more common alternative some donors use instead of — or alongside —
             a charitable trust: they get an immediate deduction and recommend grants over time, without the legal
-            cost of setting up a standalone trust. It's worth knowing about even though it isn't a trust itself.
+            cost of setting up a standalone trust. It&apos;s worth knowing about even though it isn&apos;t a trust itself.
           </div>
         </>
       )}

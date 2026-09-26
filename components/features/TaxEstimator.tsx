@@ -125,9 +125,9 @@ export function TaxEstimator() {
         />
       </div>
       <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>
-        State tax is calculated automatically from each state's published 2025 rates. Local (city/county) tax varies
-        block by block nationwide, so there's no lookup for it — type in your own rate and flat fee, the same way
-        this already worked for Pennsylvania's Chester County local tax.
+        State tax is calculated automatically from each state&apos;s published 2025 rates. Local (city/county) tax varies
+        block by block nationwide, so there&apos;s no lookup for it — type in your own rate and flat fee, the same way
+        this already worked for Pennsylvania&apos;s Chester County local tax.
       </p> 
       <ResultBox
         label={

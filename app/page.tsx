@@ -394,7 +394,7 @@ export default function HomePage() {
             <Link href="/snapshot" className="btn gold" style={{ textAlign: "center" }}>
               View your Snapshot →
             </Link>
-            <small style={{ color: "var(--muted)", textAlign: "center" }}>Everything's filled in</small>
+            <small style={{ color: "var(--muted)", textAlign: "center" }}>Everything&apos;s filled in</small>
           </div>
         )}
       </div>
@@ -424,7 +424,7 @@ export default function HomePage() {
             ))}
           </ul>
           <p className="text-xs" style={{ color: "var(--muted)" }}>
-            Checked automatically from what you've actually entered — this card disappears once all three are done.
+            Checked automatically from what you&apos;ve actually entered — this card disappears once all three are done.
           </p>
         </div>
       )}

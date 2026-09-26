@@ -200,9 +200,9 @@ export function WillsEstates() {
             </RefCard>
             <RefCard title="Why Bequests Matter for Sustainability">
               <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
-                A typical bequest is larger than a typical annual gift, often by a wide margin — it's frequently a
-                donor's single largest lifetime contribution. Many organizations build a &quot;legacy society&quot;
-                specifically to recognize and steward donors who've documented one.
+                A typical bequest is larger than a typical annual gift, often by a wide margin — it&apos;s frequently a
+                donor&apos;s single largest lifetime contribution. Many organizations build a &quot;legacy society&quot;
+                specifically to recognize and steward donors who&apos;ve documented one.
               </p>
             </RefCard>
             <RefCard title="Beneficiary Designation Gifts">

@@ -137,7 +137,7 @@ export function GrantTracking() {
       <MentorNote>
         The Bhagavad Gita teaches that you have a right to your labor, but never to the fruits of it — a fitting
         reminder for grant-seeking specifically: a well-researched funder, a carefully drafted proposal, and a
-        submission made on time are the work that's actually yours to control. The funder&apos;s decision never
+        submission made on time are the work that&apos;s actually yours to control. The funder&apos;s decision never
         is, so it&apos;s worth tracking the pipeline itself, not just waiting on the answer.
       </MentorNote>
 

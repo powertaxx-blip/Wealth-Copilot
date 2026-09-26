@@ -294,7 +294,7 @@ export function WelcomeVideo({ onClose }: { onClose: () => void }) {
 
         {status === "finished" && (
           <p className="text-sm mt-1" style={{ color: "var(--status-good)" }}>
-            That's the whole idea — you're ready to dive in.
+            That&apos;s the whole idea — you&apos;re ready to dive in.
           </p>
         )}
 

@@ -279,7 +279,7 @@ export function PaycheckCheckup() {
             <>
               {" "}
               Consider raising Step 4(c) to about {fmt(r.suggestedStep4cPerPeriod)} per paycheck (it&apos;s currently{" "}
-              {fmt(state.step4cExtraWithholding)}) — that's the simplest single line to change.
+              {fmt(state.step4cExtraWithholding)}) — that&apos;s the simplest single line to change.
             </>
           ) : (
             <> If you&apos;d rather have that cash monthly instead of a bigger refund, Step 4(c) or Step 4(b) are the lines to revisit.</>
