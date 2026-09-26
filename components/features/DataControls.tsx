@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { exportAllData } from "@/lib/dataBackup";
 
 /**
  * The one thing the original app's footer did ("Clear my saved data"),
@@ -25,22 +26,11 @@ export function DataControls() {
     refresh();
   }, []);
 
+  // Same export as Home's "Download My Data" (lib/dataBackup.ts), so both
+  // buttons produce the same file — one that Restore reads back exactly,
+  // including plain-text settings like Nonprofit Mode.
   function exportData() {
-    const dump: Record<string, unknown> = {};
-    keys.forEach((k) => {
-      try {
-        dump[k] = JSON.parse(window.localStorage.getItem(k) ?? "null");
-      } catch {
-        dump[k] = window.localStorage.getItem(k);
-      }
-    });
-    const blob = new Blob([JSON.stringify(dump, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `wealth-copilot-data-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    exportAllData();
   }
 
   function clearAll() {

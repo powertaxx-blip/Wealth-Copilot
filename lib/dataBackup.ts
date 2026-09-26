@@ -44,8 +44,21 @@ export function countBackupKeys(): number {
   }
 }
 
-function readAllBackupKeys(): Record<string, unknown> {
+/**
+ * Most keys hold JSON (everything written through useLocalStorageState),
+ * but a couple are written as plain text: Nonprofit Mode ("wc.orgType" =
+ * nonprofit) and the theme ("wc.theme" = dark). Those must be restored
+ * exactly as they were — wrapping them in JSON quotes on the way back in
+ * turned Nonprofit Mode silently off after a restore. So the export
+ * records which keys were plain text ("plainTextKeys"), and restore writes
+ * those back verbatim. Backup files made before that list existed fall
+ * back to this known set.
+ */
+const KNOWN_PLAIN_TEXT_KEYS = ["wc.orgType", "wc.theme"];
+
+function readAllBackupKeys(): { data: Record<string, unknown>; plainTextKeys: string[] } {
   const data: Record<string, unknown> = {};
+  const plainTextKeys: string[] = [];
   for (let i = 0; i < window.localStorage.length; i++) {
     const key = window.localStorage.key(i);
     if (!key || !key.startsWith(BACKUP_KEY_PREFIX)) continue;
@@ -54,12 +67,13 @@ function readAllBackupKeys(): Record<string, unknown> {
     try {
       data[key] = JSON.parse(raw);
     } catch {
-      // Not JSON (shouldn't happen for a "wc." key, but never lose the
-      // value over it) — keep the raw string as-is.
+      // Not JSON — a plain-text key. Keep the string as-is and remember
+      // that it was plain text, so restore doesn't JSON-encode it.
       data[key] = raw;
+      plainTextKeys.push(key);
     }
   }
-  return data;
+  return { data, plainTextKeys };
 }
 
 /** Triggers a browser download of every saved panel's data as one JSON
@@ -67,10 +81,12 @@ function readAllBackupKeys(): Record<string, unknown> {
  * there. */
 export function exportAllData(): void {
   if (typeof window === "undefined") return;
+  const { data, plainTextKeys } = readAllBackupKeys();
   const payload = {
     source: "Wealth Copilot",
     exportedAt: new Date().toISOString(),
-    data: readAllBackupKeys(),
+    plainTextKeys,
+    data,
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -99,29 +115,43 @@ export type ImportResult = { restoredKeys: number; error?: string };
 export function importAllData(file: File): Promise<ImportResult> {
   return new Promise((resolve) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const parsed = JSON.parse(String(reader.result));
-        const data: Record<string, unknown> =
-          parsed && typeof parsed === "object" && parsed.data && typeof parsed.data === "object"
-            ? parsed.data
-            : parsed;
-        let restoredKeys = 0;
-        Object.entries(data).forEach(([key, value]) => {
-          if (!key.startsWith(BACKUP_KEY_PREFIX)) return;
-          window.localStorage.setItem(key, JSON.stringify(value));
-          restoredKeys += 1;
-        });
-        if (restoredKeys === 0) {
-          resolve({ restoredKeys: 0, error: "That file didn't contain any recognizable Wealth Copilot data." });
-          return;
-        }
-        resolve({ restoredKeys });
-      } catch {
-        resolve({ restoredKeys: 0, error: "That file doesn't look like a Wealth Copilot backup." });
-      }
-    };
+    reader.onload = () => resolve(restoreFromText(String(reader.result)));
     reader.onerror = () => resolve({ restoredKeys: 0, error: "Couldn't read that file." });
     reader.readAsText(file);
   });
+}
+
+/** The restore itself, given the backup file's text — separate from
+ * importAllData's FileReader plumbing so it can be tested directly. */
+export function restoreFromText(text: string): ImportResult {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return { restoredKeys: 0, error: "That file doesn't look like a Wealth Copilot backup." };
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return { restoredKeys: 0, error: "That file doesn't look like a Wealth Copilot backup." };
+  }
+  const file = parsed as { data?: unknown; plainTextKeys?: unknown };
+  const data = (file.data && typeof file.data === "object" && !Array.isArray(file.data) ? file.data : parsed) as Record<string, unknown>;
+  const plainText = new Set<string>(
+    Array.isArray(file.plainTextKeys) ? file.plainTextKeys.filter((k): k is string => typeof k === "string") : KNOWN_PLAIN_TEXT_KEYS
+  );
+
+  let restoredKeys = 0;
+  try {
+    for (const [key, value] of Object.entries(data)) {
+      if (!key.startsWith(BACKUP_KEY_PREFIX)) continue;
+      const raw = plainText.has(key) && typeof value === "string" ? value : JSON.stringify(value);
+      window.localStorage.setItem(key, raw);
+      restoredKeys += 1;
+    }
+  } catch {
+    return { restoredKeys, error: "Couldn't save the restored data in this browser (storage may be full or blocked)." };
+  }
+  if (restoredKeys === 0) {
+    return { restoredKeys: 0, error: "That file didn't contain any recognizable Wealth Copilot data." };
+  }
+  return { restoredKeys };
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { exportAllData, countBackupKeys, readLastBackupAt, LAST_BACKUP_KEY, BACKUP_KEY_PREFIX } from "@/lib/dataBackup";
+import { exportAllData, restoreFromText, countBackupKeys, readLastBackupAt, LAST_BACKUP_KEY, BACKUP_KEY_PREFIX } from "@/lib/dataBackup";
 
 // A minimal in-memory localStorage plus just enough of `document` to
 // capture the file exportAllData hands to the browser to download.
@@ -61,6 +61,43 @@ describe("Download My Data (backup export)", () => {
     expect(file.source).toBe("Wealth Copilot");
     expect(Object.keys(file.data).sort()).toEqual(["wc.cashFlow", "wc.contractors", "wc.creditHealth", "wc.grants"]);
     expect(file.data["wc.grants"].grants[0].grantName).toBe("Arts Fund");
+  });
+
+  it("round-trips: a downloaded file restores every key exactly, including plain-text settings", async () => {
+    // One value of every storage style the app uses.
+    const original: Record<string, string> = {
+      "wc.grants": JSON.stringify({ grants: [{ id: "g1", grantName: "Arts Fund", amountRequested: 25000 }] }),
+      "wc.creditHealth": JSON.stringify({ personal: [{ id: "p", date: "2026-09-01", score: 712, bureau: "experian", createdAt: 1 }], business: [] }),
+      "wc.ownerName": JSON.stringify("Maria's Bakery"), // a JSON string (useLocalStorageState<string>)
+      "wc.schedulec.netProfit": JSON.stringify(61600), // a bare JSON number
+      "wc.welcomeVideoSeen": JSON.stringify(true), // a JSON boolean
+      "wc.orgType": "nonprofit", // plain text, written directly
+      "wc.theme": "dark", // plain text, written directly
+    };
+    for (const [k, v] of Object.entries(original)) env.store.set(k, v);
+
+    exportAllData();
+    const fileText = await env.downloads[0].blob.text();
+
+    env.store.clear(); // a fresh browser
+    const result = restoreFromText(fileText);
+    expect(result).toEqual({ restoredKeys: 7 });
+    for (const [k, v] of Object.entries(original)) expect(env.store.get(k), k).toBe(v);
+  });
+
+  it("restores plain-text settings from older backup files that predate plainTextKeys", () => {
+    const oldSettingsExport = JSON.stringify({ "wc.orgType": "nonprofit", "wc.theme": "dark", "wc.ownerName": "Maria" });
+    expect(restoreFromText(oldSettingsExport).restoredKeys).toBe(3);
+    expect(env.store.get("wc.orgType")).toBe("nonprofit");
+    expect(env.store.get("wc.theme")).toBe("dark");
+    expect(env.store.get("wc.ownerName")).toBe(JSON.stringify("Maria"));
+  });
+
+  it("rejects files that aren't Wealth Copilot backups, and ignores keys that aren't ours", () => {
+    expect(restoreFromText("not json").error).toMatch(/doesn't look like/);
+    expect(restoreFromText("[1,2,3]").error).toMatch(/doesn't look like/);
+    expect(restoreFromText(JSON.stringify({ data: { "other.key": 1 } })).error).toMatch(/recognizable/);
+    expect(env.store.has("other.key")).toBe(false);
   });
 
   it("records when the backup was downloaded", () => {
