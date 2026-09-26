@@ -360,7 +360,7 @@ export default function HomePage() {
           </div>
           <h2 className="text-2xl">Here&apos;s where things stand.</h2>
           <p className="mt-2 text-sm" style={{ color: "var(--ink-soft)" }}>
-            Every tool below is live — no placeholders. Pick up where you left off, or jump straight to what you need.
+            Pick up where you left off, or jump straight to what you need.
           </p>
           {/* Previously this switch only lived on Settings — buried enough
               that "where's the toggle for nonprofits" came up more than

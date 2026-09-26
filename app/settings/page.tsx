@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Settings" };
 export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
-      <Card title="Settings" lede="New in the React rebuild — the old prototype had no dedicated settings screen.">
+      <Card title="Settings" lede="Adjust how Wealth Copilot looks and works for you.">
         <ThemeToggle />
       </Card>
       <Card
