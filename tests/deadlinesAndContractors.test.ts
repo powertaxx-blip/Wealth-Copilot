@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { nec1099Threshold, nec1099DueDate, contractorStatus, calcContractorTotals, validContractors, type Contractor } from "@/lib/contractors";
 import { buildDeadlines, nextEstimatedTaxDate, type DeadlineSources } from "@/lib/deadlines";
 import type { Grant } from "@/lib/grants";
+import { buildForecast, monthLabel, validItems, type CashFlowInput } from "@/lib/cashFlow";
 
 const c = (patch: Partial<Contractor> = {}): Contractor => ({
   id: "x",
@@ -120,5 +121,46 @@ describe("Upcoming deadlines", () => {
     expect(nec.due).toBe(Date.UTC(2027, 1, 1));
     expect(nec.detail).toMatch(/missing a W-9/);
     expect(items.find((i) => i.id === "w2")!.detail).toMatch(/2026 wages/);
+  });
+});
+
+describe("Cash-flow forecast", () => {
+  const base: CashFlowInput = { startMonth: "2026-10", startingCash: 10000, monthlyIncome: 5000, monthlyExpenses: 6000, items: [] };
+
+  it("runs the balance forward 12 months", () => {
+    const f = buildForecast(base);
+    expect(f.months).toHaveLength(12);
+    expect(f.months[0].closing).toBe(9000);
+    expect(f.endingCash).toBe(-2000);
+    expect(f.months[0].label).toBe("Oct 2026");
+    expect(f.months[11].label).toBe("Sep 2027");
+  });
+
+  it("flags the first month below zero as a shortfall", () => {
+    const f = buildForecast(base);
+    expect(f.tone).toBe("critical");
+    expect(f.shortfallMonths[0].label).toBe("Aug 2027"); // 10,000 - 1,000/month goes negative in month 11
+    expect(f.lowest.closing).toBe(-2000);
+  });
+
+  it("applies one-time items in their month", () => {
+    const f = buildForecast({ ...base, items: [{ id: "g", monthOffset: 2, label: "Grant", amount: 20000, direction: "in" }] });
+    expect(f.months[2].income).toBe(25000);
+    expect(f.tone).toBe("good");
+  });
+
+  it("warns when the low point is under one month of expenses", () => {
+    const f = buildForecast({ ...base, startingCash: 2000, monthlyIncome: 6000, items: [{ id: "i", monthOffset: 5, label: "Insurance", amount: 1500, direction: "out" }] });
+    expect(f.tone).toBe("warning");
+    expect(f.lowest.offset).toBe(5);
+  });
+
+  it("labels months across a year boundary and survives a bad start month", () => {
+    expect(monthLabel("2026-12", 1)).toBe("Jan 2027");
+    expect(monthLabel("garbage", 0)).toBe("Month 1");
+  });
+
+  it("skips malformed or out-of-range saved items", () => {
+    expect(validItems([{ id: "a", monthOffset: 0, label: "x", amount: 1, direction: "in" }, { id: "b", monthOffset: 12, label: "x", amount: 1, direction: "in" }, { id: "c", monthOffset: 0, label: "x", amount: 1, direction: "sideways" }])).toHaveLength(1);
   });
 });

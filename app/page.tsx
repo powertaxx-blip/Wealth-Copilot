@@ -52,6 +52,14 @@ const GROUPS: Group[] = [
         done: (s) => s.budgeting.hasData,
       },
       {
+        href: "/cashflow",
+        emoji: "🌊",
+        title: "Cash-Flow Forecast",
+        desc: "Your bank balance month by month for the next year.",
+        help: "Starts from the cash you have today, adds a typical month's income and expenses plus one-time items, and flags the month your balance gets lowest.",
+        done: (s) => s.cashFlow.hasData,
+      },
+      {
         href: "/emergency",
         emoji: "🛟",
         title: "Emergency Fund",
@@ -252,7 +260,7 @@ const GROUPS: Group[] = [
 const TRACKED_TILES: TrackedTile[] = GROUPS.flatMap((g) => g.tiles).filter(
   (t): t is TrackedTile => typeof t.done === "function"
 );
-const TOTAL_TRACKED = 21; // matches lib/snapshot.ts's SnapshotData — 21 sections
+const TOTAL_TRACKED = 22; // matches lib/snapshot.ts's SnapshotData — 22 sections
 
 export default function HomePage() {
   const router = useRouter();
@@ -290,6 +298,7 @@ export default function HomePage() {
         snapshot.form990.hasData,
         snapshot.credit.hasData,
         snapshot.contractors.hasData,
+        snapshot.cashFlow.hasData,
         snapshot.paycheckCheckup.hasData,
       ].filter(Boolean).length
     : 0;

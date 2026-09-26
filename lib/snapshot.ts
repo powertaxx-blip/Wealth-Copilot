@@ -60,6 +60,7 @@ import {
   DEFAULT_CONTRACTORS_STATE,
   type ContractorsState,
 } from "@/lib/contractors";
+import { buildForecast, validItems, CASH_FLOW_STORAGE_KEY, DEFAULT_CASH_FLOW, type CashFlowInput } from "@/lib/cashFlow";
 import {
   runPaycheckCheckup,
   DEFAULT_PAYCHECK_CHECKUP,
@@ -104,6 +105,7 @@ export type SnapshotData = {
   financialHealth: Section<{ daysCash: number; reserveMonths: number; reserveLabel: string; tone: "good" | "warning" | "critical" }>;
   form990: Section<{ formLabel: string; passed: boolean; daysRemaining: number; label: string; tone: "good" | "warning" | "critical" }>;
   contractors: Section<{ taxYear: number; count: number; needing1099: number; missingW9: number }>;
+  cashFlow: Section<{ lowest: number; lowestLabel: string; headline: string; tone: "good" | "warning" | "critical" }>;
   credit: Section<{
     personal: { score: number; label: string; tone: "good" | "warning" | "critical"; change: number | null } | null;
     business: { score: number; label: string; tone: "good" | "warning" | "critical"; change: number | null } | null;
@@ -359,6 +361,18 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     return { hasData: t.count > 0, taxYear: state.taxYear, count: t.count, needing1099: t.needing1099, missingW9: t.missingW9 };
   })();
 
+  // --- Cash-Flow Forecast (counts once any of the three baseline
+  // numbers is entered — an all-zero forecast says nothing) ---
+  const cfRaw = readJSON<Partial<CashFlowInput>>(CASH_FLOW_STORAGE_KEY, {});
+  const cashFlow = (() => {
+    const input: CashFlowInput = { ...DEFAULT_CASH_FLOW, ...cfRaw, items: validItems(cfRaw.items) };
+    if (!(input.startingCash > 0 || input.monthlyIncome > 0 || input.monthlyExpenses > 0)) {
+      return { hasData: false, lowest: 0, lowestLabel: "", headline: "", tone: "good" as const };
+    }
+    const f = buildForecast(input);
+    return { hasData: true, lowest: f.lowest.closing, lowestLabel: f.lowest.label, headline: f.headline, tone: f.tone };
+  })();
+
   // --- Paycheck Checkup ---
   const pcInput = readJSON<PaycheckCheckupInput>(PAYCHECK_CHECKUP_STORAGE_KEY, DEFAULT_PAYCHECK_CHECKUP);
   const paycheckCheckup = (() => {
@@ -389,6 +403,7 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     form990,
     credit,
     contractors,
+    cashFlow,
     paycheckCheckup,
   };
 }

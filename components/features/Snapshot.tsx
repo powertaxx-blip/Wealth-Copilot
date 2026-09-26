@@ -151,6 +151,16 @@ export function Snapshot() {
         />
 
         <Tile
+          emoji="🌊"
+          label="Cash-Flow Forecast"
+          href="/cashflow"
+          hasData={data.cashFlow.hasData}
+          big={data.cashFlow.hasData ? `${fmt(data.cashFlow.lowest)} low point` : undefined}
+          sub={data.cashFlow.hasData ? `${data.cashFlow.headline} · lowest in ${data.cashFlow.lowestLabel}` : undefined}
+          tone={data.cashFlow.hasData ? data.cashFlow.tone : undefined}
+        />
+
+        <Tile
           emoji={nonprofit ? "🏦" : "🛟"}
           label={nonprofit ? "Operating Reserve" : "Emergency Fund"}
           href="/emergency"
