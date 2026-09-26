@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { MentorNote } from "@/components/ui/MentorNote";
 import { TextField, NumberField, SelectField } from "@/components/ui/Field";
 import { ResultBox, StatusPill } from "@/components/ui/ResultBox";
+import { PrintReport } from "@/components/ui/PrintReport";
 import { fmt } from "@/lib/format";
 import { useOrgType } from "@/lib/orgType";
 import { useLocalStorageState } from "@/lib/useLocalStorageState";
@@ -86,6 +87,7 @@ export function CashFlow() {
         October: move a payment date, chase an unpaid invoice, or line up a credit line early. The one you don&apos;t see coming
         is the one that stops you.
       </MentorNote>
+      <PrintReport title="12-Month Cash-Flow Forecast" />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <SelectField label="Forecast period" value={input.startMonth} onChange={(v) => set("startMonth", v)} options={startOptions} />
@@ -127,7 +129,7 @@ export function CashFlow() {
       )}
 
       <h3 className="text-lg">One-Time Money In or Out</h3>
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-4 no-print">
         <SelectField label="Month" value={String(item.monthOffset)} onChange={(v) => setItem((i) => ({ ...i, monthOffset: Number(v) }))} options={monthOptions} />
         <SelectField
           label="Direction"

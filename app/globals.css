@@ -714,6 +714,57 @@ td {
   }
 }
 
+/* Report printing — components/ui/PrintReport.tsx (Snapshot, Financial
+   Health, Cash-Flow Forecast). On paper: no buttons, info badges or
+   Mentor's Notes, no "not started" Snapshot tiles, backgrounds kept (the
+   navy result boxes carry the headline numbers), and rows/boxes kept
+   whole across page breaks. */
+.print-only {
+  display: none;
+}
+@media print {
+  .btn,
+  .info-tip,
+  .mentor,
+  .print-hide {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  .card {
+    box-shadow: none !important;
+  }
+  .result-box,
+  tr,
+  .print-keep-together {
+    break-inside: avoid;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-report-header {
+    border-bottom: 2px solid #1d1d1d;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+  }
+  .print-report-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: #1d1d1d;
+  }
+  .print-report-meta {
+    font-size: 11px;
+    color: #555;
+  }
+}
+
 /* Header tagline strip — see components/nav/TopNav.tsx. Sits above the
    logo/search/nav row, inside the same fixed-navy <header>, so it reads
    as one brand band rather than a separate banner. --gold (not a fixed

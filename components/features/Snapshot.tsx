@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { MentorNote } from "@/components/ui/MentorNote";
 import { StatusPill } from "@/components/ui/ResultBox";
+import { PrintReport } from "@/components/ui/PrintReport";
 import { fmt } from "@/lib/format";
 import { useOrgType } from "@/lib/orgType";
 import { readSnapshotData, type SnapshotData } from "@/lib/snapshot";
@@ -55,7 +56,10 @@ function Tile({
   tone?: "good" | "warning" | "critical";
 }) {
   return (
-    <div className="card flex flex-col gap-2" style={{ boxShadow: "none", borderStyle: hasData ? "solid" : "dashed" }}>
+    <div
+      className={`card flex flex-col gap-2 print-keep-together${hasData ? "" : " print-hide"}`}
+      style={{ boxShadow: "none", borderStyle: hasData ? "solid" : "dashed" }}
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-semibold" style={{ color: "var(--navy)" }}>
           {emoji} {label}
@@ -130,11 +134,12 @@ export function Snapshot() {
         )}
       </MentorNote>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2 no-print">
         <button type="button" className="btn ghost" onClick={refresh}>
           ↻ Refresh
         </button>
       </div>
+      <PrintReport title={nonprofit ? "Organization Snapshot" : "Financial Snapshot"} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Tile

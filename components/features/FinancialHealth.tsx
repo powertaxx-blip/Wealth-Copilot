@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { MentorNote } from "@/components/ui/MentorNote";
 import { NumberField, CheckboxField } from "@/components/ui/Field";
 import { ResultBox, StatusPill } from "@/components/ui/ResultBox";
+import { PrintReport } from "@/components/ui/PrintReport";
 import { fmt } from "@/lib/format";
 import { useLocalStorageState } from "@/lib/useLocalStorageState";
 import {
@@ -43,6 +44,7 @@ export function FinancialHealth() {
         Ratio the second. Cash that looks healthy because a grant just landed can be gone in a month, so it&apos;s worth
         reading them together.
       </MentorNote>
+      <PrintReport title="Financial Health Report" />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <NumberField
