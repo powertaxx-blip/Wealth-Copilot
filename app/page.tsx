@@ -178,6 +178,14 @@ const GROUPS: Group[] = [
         help: "Separate from Schedule C on purpose — a W-2 employee triggers employer payroll taxes (Social Security, Medicare, unemployment) that a 1099 contractor never does.",
         done: (s) => s.employees.hasData,
       },
+      {
+        href: "/contractors",
+        emoji: "🛠️",
+        title: "1099 Contractors",
+        desc: "Track contractor payments, W-9s, and who needs a 1099-NEC.",
+        help: "Independent contractors paid over the IRS threshold for the year need a Form 1099-NEC by January 31 — and you need their W-9 to file it.",
+        done: (s) => s.contractors.hasData,
+      },
     ],
   },
   {
@@ -243,7 +251,7 @@ const GROUPS: Group[] = [
 const TRACKED_TILES: TrackedTile[] = GROUPS.flatMap((g) => g.tiles).filter(
   (t): t is TrackedTile => typeof t.done === "function"
 );
-const TOTAL_TRACKED = 20; // matches lib/snapshot.ts's SnapshotData — 20 sections
+const TOTAL_TRACKED = 21; // matches lib/snapshot.ts's SnapshotData — 21 sections
 
 export default function HomePage() {
   const router = useRouter();
@@ -280,6 +288,7 @@ export default function HomePage() {
         snapshot.financialHealth.hasData,
         snapshot.form990.hasData,
         snapshot.credit.hasData,
+        snapshot.contractors.hasData,
         snapshot.paycheckCheckup.hasData,
       ].filter(Boolean).length
     : 0;

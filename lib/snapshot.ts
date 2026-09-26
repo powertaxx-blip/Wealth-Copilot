@@ -54,6 +54,13 @@ import {
   type CreditHealthState,
 } from "@/lib/creditHealth";
 import {
+  calcContractorTotals,
+  validContractors,
+  CONTRACTORS_STORAGE_KEY,
+  DEFAULT_CONTRACTORS_STATE,
+  type ContractorsState,
+} from "@/lib/contractors";
+import {
   runPaycheckCheckup,
   DEFAULT_PAYCHECK_CHECKUP,
   PAYCHECK_CHECKUP_STORAGE_KEY,
@@ -96,6 +103,7 @@ export type SnapshotData = {
   donorRetention: Section<{ ratePct: number; label: string; tone: "good" | "warning" }>;
   financialHealth: Section<{ daysCash: number; reserveMonths: number; reserveLabel: string; tone: "good" | "warning" | "critical" }>;
   form990: Section<{ formLabel: string; passed: boolean; daysRemaining: number; label: string; tone: "good" | "warning" | "critical" }>;
+  contractors: Section<{ taxYear: number; count: number; needing1099: number; missingW9: number }>;
   credit: Section<{
     personal: { score: number; label: string; tone: "good" | "warning" | "critical"; change: number | null } | null;
     business: { score: number; label: string; tone: "good" | "warning" | "critical"; change: number | null } | null;
@@ -340,6 +348,17 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     return { hasData: personal !== null || business !== null, personal, business };
   })();
 
+  // --- 1099 Contractors ---
+  const contractorsRaw = readJSON<Partial<ContractorsState>>(CONTRACTORS_STORAGE_KEY, {});
+  const contractors = (() => {
+    const state: ContractorsState = {
+      taxYear: Number.isInteger(contractorsRaw.taxYear) ? (contractorsRaw.taxYear as number) : DEFAULT_CONTRACTORS_STATE.taxYear,
+      contractors: validContractors(contractorsRaw.contractors),
+    };
+    const t = calcContractorTotals(state);
+    return { hasData: t.count > 0, taxYear: state.taxYear, count: t.count, needing1099: t.needing1099, missingW9: t.missingW9 };
+  })();
+
   // --- Paycheck Checkup ---
   const pcInput = readJSON<PaycheckCheckupInput>(PAYCHECK_CHECKUP_STORAGE_KEY, DEFAULT_PAYCHECK_CHECKUP);
   const paycheckCheckup = (() => {
@@ -369,6 +388,7 @@ export function readSnapshotData(nonprofit: boolean): SnapshotData {
     financialHealth,
     form990,
     credit,
+    contractors,
     paycheckCheckup,
   };
 }

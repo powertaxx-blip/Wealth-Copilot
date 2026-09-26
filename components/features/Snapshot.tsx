@@ -332,6 +332,22 @@ export function Snapshot() {
         />
 
         <Tile
+          emoji="🛠️"
+          label="1099 Contractors"
+          href="/contractors"
+          hasData={data.contractors.hasData}
+          big={data.contractors.hasData ? `${data.contractors.needing1099} need a 1099` : undefined}
+          sub={
+            data.contractors.hasData
+              ? `${data.contractors.count} contractor${data.contractors.count === 1 ? "" : "s"} in ${data.contractors.taxYear}${
+                  data.contractors.missingW9 ? ` · ${data.contractors.missingW9} missing a W-9` : ""
+                }`
+              : undefined
+          }
+          tone={data.contractors.hasData ? (data.contractors.missingW9 ? "critical" : "good") : undefined}
+        />
+
+        <Tile
           emoji="🎗️"
           label="Grant Tracking"
           href="/grants"
