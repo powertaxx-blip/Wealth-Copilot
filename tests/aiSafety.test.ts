@@ -113,3 +113,11 @@ describe("AI rate limiting (in-memory fallback)", () => {
     expect(refused.ok === false && refused.scope).toBe("day");
   });
 });
+
+describe("rate limiter reports which store decided", () => {
+  it("says 'memory' when Upstash isn't configured", async () => {
+    resetMemoryRateLimit();
+    const r = await checkAIRateLimit(new Request("http://localhost/api/x", { method: "POST", headers: { "x-forwarded-for": "9.9.9.9" } }));
+    expect(r.store).toBe("memory");
+  });
+});

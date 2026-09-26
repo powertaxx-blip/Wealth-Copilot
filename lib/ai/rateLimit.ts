@@ -29,7 +29,13 @@ export const LIMITS = {
   globalPerDay: 2_000,
 } as const;
 
-export type RateLimitResult = { ok: true } | { ok: false; retryAfterSeconds: number; scope: "minute" | "day" | "global" };
+/** Which store decided: the shared Upstash limit, or the per-instance
+ * in-memory fallback (Upstash not configured, or unreachable). Reported
+ * to callers so the routes can expose it as a response header. */
+export type RateLimitStore = "upstash" | "memory";
+
+type Decision = { ok: true } | { ok: false; retryAfterSeconds: number; scope: "minute" | "day" | "global" };
+export type RateLimitResult = Decision & { store: RateLimitStore };
 
 // --- Upstash (preferred) ---------------------------------------------------
 
@@ -79,7 +85,7 @@ function memoryHit(key: string, limit: number, windowMs: number, now: number, re
   return 0;
 }
 
-function checkMemory(ip: string, now: number): RateLimitResult {
+function checkMemory(ip: string, now: number): Decision {
   // Check all three before recording anything, so a request that's
   // refused by one limit doesn't still use up the others.
   const checks = [
@@ -117,23 +123,23 @@ export function clientIp(req: Request): string {
 export async function checkAIRateLimit(req: Request, now: number = Date.now()): Promise<RateLimitResult> {
   const ip = clientIp(req);
   const limiters = getUpstash();
-  if (!limiters) return checkMemory(ip, now);
+  if (!limiters) return { ...checkMemory(ip, now), store: "memory" };
   try {
     const minute = await limiters.minute.limit(ip);
-    if (!minute.success) return { ok: false, retryAfterSeconds: Math.max(1, Math.ceil((minute.reset - now) / 1000)), scope: "minute" };
+    if (!minute.success) return { ok: false, retryAfterSeconds: Math.max(1, Math.ceil((minute.reset - now) / 1000)), scope: "minute", store: "upstash" };
     const day = await limiters.day.limit(ip);
-    if (!day.success) return { ok: false, retryAfterSeconds: Math.max(1, Math.ceil((day.reset - now) / 1000)), scope: "day" };
+    if (!day.success) return { ok: false, retryAfterSeconds: Math.max(1, Math.ceil((day.reset - now) / 1000)), scope: "day", store: "upstash" };
     const global = await limiters.global.limit("all");
-    if (!global.success) return { ok: false, retryAfterSeconds: Math.max(1, Math.ceil((global.reset - now) / 1000)), scope: "global" };
-    return { ok: true };
+    if (!global.success) return { ok: false, retryAfterSeconds: Math.max(1, Math.ceil((global.reset - now) / 1000)), scope: "global", store: "upstash" };
+    return { ok: true, store: "upstash" };
   } catch (err) {
     console.error("[rateLimit] Upstash unreachable, falling back to in-memory:", err instanceof Error ? err.message : String(err));
-    return checkMemory(ip, now);
+    return { ...checkMemory(ip, now), store: "memory" };
   }
 }
 
 /** The friendly message and 429 response body for a refused request. */
-export function rateLimitMessage(r: Extract<RateLimitResult, { ok: false }>): string {
+export function rateLimitMessage(r: Extract<Decision, { ok: false }>): string {
   if (r.scope === "global") {
     return "The AI features have reached their daily limit. Please try again tomorrow — everything else in the app still works.";
   }

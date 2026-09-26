@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   if (!limit.ok) {
     return NextResponse.json(
       { error: rateLimitMessage(limit) },
-      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds), "X-RateLimit-Store": limit.store } }
     );
   }
 
