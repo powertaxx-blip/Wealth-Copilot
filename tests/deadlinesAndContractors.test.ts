@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { nec1099Threshold, nec1099DueDate, contractorStatus, calcContractorTotals, validContractors, type Contractor } from "@/lib/contractors";
+import { buildDeadlines, nextEstimatedTaxDate, type DeadlineSources } from "@/lib/deadlines";
+import type { Grant } from "@/lib/grants";
 
 const c = (patch: Partial<Contractor> = {}): Contractor => ({
   id: "x",
@@ -46,5 +48,77 @@ describe("1099 contractors", () => {
 
   it("skips malformed saved contractors", () => {
     expect(validContractors([c(), { id: 1 }, null, { ...c(), amountPaid: NaN }])).toHaveLength(1);
+  });
+});
+
+describe("Upcoming deadlines", () => {
+  const today = Date.UTC(2026, 8, 25); // Fri Sep 25, 2026
+  const none: DeadlineSources = { estimator: null, form990: null, grants: [], contractors: null, hasEmployees: false };
+  const grant = (patch: Partial<Grant>): Grant => ({
+    id: "g",
+    grantName: "Arts Fund",
+    funderName: "Foundation",
+    amountRequested: 0,
+    amountAwarded: 0,
+    applicationDeadline: "",
+    decisionDate: "",
+    status: "drafting",
+    ...patch,
+  });
+
+  it("is empty when nothing has a date", () => {
+    expect(buildDeadlines(none, today)).toEqual([]);
+  });
+
+  it("finds the next estimated-tax date, including the January one for the prior year", () => {
+    expect(nextEstimatedTaxDate(today).due).toBe(Date.UTC(2027, 0, 15));
+    expect(nextEstimatedTaxDate(Date.UTC(2026, 8, 15)).due).toBe(Date.UTC(2026, 8, 15));
+    expect(nextEstimatedTaxDate(Date.UTC(2026, 0, 10)).label).toBe("4th-quarter 2025 payment");
+  });
+
+  it("lists in-progress grant deadlines only, soonest first, within the window", () => {
+    const items = buildDeadlines(
+      {
+        ...none,
+        grants: [
+          grant({ id: "a", applicationDeadline: "2026-11-01" }),
+          grant({ id: "b", applicationDeadline: "2026-10-05", status: "researching" }),
+          grant({ id: "c", applicationDeadline: "2026-10-01", status: "submitted" }), // already submitted
+          grant({ id: "d", applicationDeadline: "2026-09-01" }), // past
+          grant({ id: "e", applicationDeadline: "March 1" }), // not a date
+          grant({ id: "f", applicationDeadline: "2027-06-01" }), // beyond 120 days
+        ],
+      },
+      today
+    );
+    expect(items.map((i) => i.id)).toEqual(["grant-b", "grant-a"]);
+  });
+
+  it("shows the 990 extended date after the regular deadline, and overdue once both have passed", () => {
+    const ext = buildDeadlines({ ...none, form990: { grossReceipts: 100000, totalAssets: 0, fiscalYearEnd: "2025-12-31" } }, today);
+    expect(ext[0].id).toBe("form990-extended");
+    expect(ext[0].due).toBe(Date.UTC(2026, 10, 15));
+    const late = buildDeadlines({ ...none, form990: { grossReceipts: 20000, totalAssets: 0, fiscalYearEnd: "2025-12-31" } }, today);
+    expect(late[0].overdue).toBe(true); // 990-N: no extension
+  });
+
+  it("puts overdue items first", () => {
+    const items = buildDeadlines(
+      { ...none, form990: { grossReceipts: 20000, totalAssets: 0, fiscalYearEnd: "2025-12-31" }, grants: [grant({ applicationDeadline: "2026-10-01" })] },
+      today
+    );
+    expect(items[0].overdue).toBe(true);
+  });
+
+  it("adds 1099-NEC and W-2 dates when they apply", () => {
+    const soon = Date.UTC(2026, 11, 1); // Dec 1, 2026 — Jan 31 is inside the window
+    const items = buildDeadlines(
+      { ...none, contractors: { taxYear: 2026, contractors: [c({ w9OnFile: false })] }, hasEmployees: true },
+      soon
+    );
+    const nec = items.find((i) => i.id === "1099-nec")!;
+    expect(nec.due).toBe(Date.UTC(2027, 1, 1));
+    expect(nec.detail).toMatch(/missing a W-9/);
+    expect(items.find((i) => i.id === "w2")!.detail).toMatch(/2026 wages/);
   });
 });

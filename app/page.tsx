@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { WelcomeVideoLauncher } from "@/components/features/WelcomeVideo";
+import { UpcomingDeadlines } from "@/components/features/UpcomingDeadlines";
 import { Tip } from "@/components/ui/Tip";
 import { useLocalStorageState } from "@/lib/useLocalStorageState";
 import { useOrgType } from "@/lib/orgType";
@@ -437,6 +438,8 @@ export default function HomePage() {
           </p>
         </div>
       )}
+
+      <UpcomingDeadlines />
 
       {GROUPS.map((group) => (
         <div key={group.label} className="home-group">
