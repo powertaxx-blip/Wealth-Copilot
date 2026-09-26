@@ -3,7 +3,9 @@ import { TopNav } from "@/components/nav/TopNav";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Wealth Copilot — Power Taxx Ltd.",
+  // Each page sets its own title (e.g. "Tax Estimator"), shown as
+  // "Tax Estimator · Wealth Copilot"; Home (a client page) uses the default.
+  title: { default: "Wealth Copilot — Power Taxx Ltd.", template: "%s · Wealth Copilot" },
   description:
     "Power Taxx Ltd.'s Wealth Copilot — tax, budgeting, and business planning tools for Pennsylvania / Chester County filers.",
 };

@@ -2,6 +2,9 @@ import { Card } from "@/components/ui/Card";
 import { ThemeToggle } from "@/components/features/ThemeToggle";
 import { DataControls } from "@/components/features/DataControls";
 import { OrgTypeToggle } from "@/components/features/OrgTypeToggle";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Settings" };
 
 export default function SettingsPage() {
   return (
