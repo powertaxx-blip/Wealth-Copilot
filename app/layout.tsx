@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { TopNav } from "@/components/nav/TopNav";
+import { MovedBanner } from "@/components/features/MovedBanner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <MovedBanner />
         <TopNav />
         <main className="mx-auto max-w-[1180px] px-6 py-10">{children}</main>
         <footer className="px-6 py-10 text-center text-[12.5px]" style={{ color: "var(--muted)" }}>

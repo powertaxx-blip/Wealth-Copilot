@@ -685,6 +685,53 @@ td {
   line-height: 1.35;
 }
 
+/* "Wealth Copilot has moved" banner — shown only at the old address
+   (components/features/MovedBanner.tsx), above the site header. Theme
+   tokens so it reads in light and dark mode; wraps on narrow screens. */
+.moved-banner {
+  background: var(--line-soft);
+  border-bottom: 3px solid var(--gold);
+  color: var(--ink);
+}
+.moved-banner-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 20px;
+}
+.moved-banner-inner > p:first-child {
+  flex: 1 1 380px;
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+.moved-banner a {
+  color: var(--ink);
+  text-decoration: underline;
+}
+.moved-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.moved-banner a.moved-banner-link {
+  text-decoration: none;
+}
+.moved-banner-note {
+  width: 100%;
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+@media (max-width: 520px) {
+  .moved-banner-inner {
+    padding: 12px 16px;
+  }
+}
+
 /* Home's backup card (components/features/BackupCard.tsx), directly
    under the hero. Gold left edge so it reads as important without
    competing with the hero itself; stacks on narrow screens. */
